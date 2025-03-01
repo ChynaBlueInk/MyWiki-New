@@ -1,0 +1,99 @@
+/* Navbar styles */
+.navbar {
+    background-color: black;
+    color: white;
+    padding: 15px 0;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+  }
+  
+  .nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    margin: auto;
+  }
+  .container {
+    padding-top: 100px;
+  }
+  @media (max-width: 768px) {
+    .container {
+      padding-top: 120px;
+    }
+  }
+  
+  
+  .logo {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+  }
+  
+  .nav-links li {
+    display: inline;
+  }
+  
+  .nav-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 10px;
+  }
+  
+  .nav-links a:hover {
+    background-color: gray;
+    border-radius: 5px;
+  }
+  /* Make navbar text larger on bigger screens */
+.navbar a {
+  font-size: 1.2rem; /* Default size */
+  padding: 10px 15px;
+  text-decoration: none;
+}
+
+/* Adjust for larger screens */
+@media (min-width: 1024px) {
+  .navbar a {
+    font-size: 1.5rem;
+  }
+}
+
+/* Adjust for mobile */
+.nav-links {
+  gap: 15px;
+}
+@media (max-width: 600px) {
+  .nav-links {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* Default size for all screens */
+.logo {
+  font-size: 1.8rem; /* Slightly larger by default */
+  font-weight: bold;
+}
+
+/* Larger font for bigger screens */
+@media (min-width: 1024px) {
+  .logo {
+    font-size: 2.5rem;
+  }
+}
+
+/* Smaller font for mobile screens */
+@media (max-width: 768px) {
+  .logo {
+    font-size: 1.5rem;
+  }
+}

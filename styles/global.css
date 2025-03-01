@@ -1,0 +1,65 @@
+/* ✅ General Reset and Font Settings */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: white;
+  color: black;
+}
+
+/* ✅ Prevent Page Content from Going Under the NavBar */
+main {
+  padding-top: 80px; /* Adjust based on NavBar height */
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* ✅ Responsive Padding for Smaller Screens */
+@media screen and (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+  main {
+    padding-top: 100px; /* More padding for smaller screens */
+  }
+}
+
+/* ✅ Centered Container for Consistent Spacing */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ✅ Fix Button Spacing */
+button {
+  margin-top: 10px;
+}
+
+/* ✅ Fix Forms */
+.form-control {
+  padding: 10px;
+  border-radius: 5px;
+}
+
+/* ✅ Improve Link Styles */
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ✅ Ensure Footer Doesn't Overlap */
+footer {
+  margin-top: 40px;
+  padding: 20px;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-top: 1px solid #ddd;
+}
