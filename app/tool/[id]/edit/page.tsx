@@ -1,96 +1,159 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Form, Button } from "react-bootstrap";
 
-const categoryOptions = ["Writing", "Video", "Music", "Images", "All-Round"];
-
-export default function EditToolPage() {
+export default function EditToolPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const { id } = useParams();
-
-  const [toolData, setToolData] = useState({
-    name: "",
-    description: "",
-    categories: [] as string[],
-    pricing: "",
-    website: "",
-    thumbnail: "",
-  });
-
+  const { id } = params;
+  const [toolData, setToolData] = useState<{
+    name: string;
+    description: string;
+    categories: string[];
+    pricing: string;
+    website: string;
+    submittedBy: string;
+    dateSubmitted: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
+  // ✅ Fetch categories dynamically from API
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [newCategory, setNewCategory] = useState("");
+
   useEffect(() => {
-    if (!id) {
-      console.error("❌ No ID provided!");
-      setLoading(false);
-      return;
-    }
+    const fetchTool = async () => {
+      try {
+        console.log(`📡 Fetching tool details for ID: ${id}`);
 
-    // ✅ Placeholder Data (until database is connected)
-    const sampleTools = [
-      {
-        id: "1",
-        name: "ChatGPT",
-        description: "AI chatbot by OpenAI",
-        categories: ["Writing", "Chatbot"],
-        pricing: "Free",
-        website: "https://openai.com/chatgpt",
-        thumbnail: "/placeholder.svg",
-      },
-      {
-        id: "2",
-        name: "DALL·E",
-        description: "AI image generation",
-        categories: ["Images", "Art"],
-        pricing: "Paid",
-        website: "https://openai.com/dalle",
-        thumbnail: "/placeholder.svg",
-      },
-    ];
+        const response = await fetch(`/api/getTool?id=${id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch tool details");
+        }
 
-    const selectedTool = sampleTools.find((tool) => tool.id === id);
-    if (selectedTool) {
-      setToolData(selectedTool);
-    } else {
-      console.error("❌ Tool not found!");
-    }
-    setLoading(false);
+        const data = await response.json();
+        console.log("✅ Tool data loaded:", data);
+
+        setToolData({
+          name: data.name || "",
+          description: data.description || "",
+          website: data.website || "",
+          pricing: data.pricing || "",
+          submittedBy: data.submittedBy || "Unknown",
+          dateSubmitted: data.dateSubmitted || "Unknown",
+          categories: Array.isArray(data.categories) ? data.categories : [],
+        });
+
+      } catch (error) {
+        console.error("❌ Error fetching tool:", error);
+        setMessage("Error loading tool data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        console.log("📡 Fetching category options...");
+        const response = await fetch(`/api/getCategories`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+
+        const data = await response.json();
+        console.log("✅ Categories loaded:", data);
+
+        if (Array.isArray(data)) {
+          setCategoryOptions(data);
+        }
+      } catch (error) {
+        console.error("❌ Error fetching categories:", error);
+      }
+    };
+
+    fetchTool();
+    fetchCategories();
   }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setToolData({ ...toolData, [e.target.name]: e.target.value });
+    if (toolData) {
+      setToolData((prevData) => ({
+        ...prevData!,
+        [e.target.name]: e.target.value,
+      }));
+    }
   };
 
   const handleCategoryChange = (category: string) => {
-    setToolData((prevData) => ({
-      ...prevData,
-      categories: prevData.categories.includes(category)
-        ? prevData.categories.filter((c) => c !== category)
-        : [...prevData.categories, category],
-    }));
+    setToolData((prevData) => {
+      if (!prevData) return null;
+
+      return {
+        ...prevData,
+        categories: prevData.categories.includes(category)
+          ? prevData.categories.filter((c: string) => c !== category)
+          : [...prevData.categories, category],
+      };
+    });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleAddNewCategory = () => {
+    if (newCategory.trim() && !categoryOptions.includes(newCategory.trim())) {
+      setCategoryOptions((prevOptions) => [...prevOptions, newCategory.trim()]);
+      setToolData((prevData) => {
+        if (!prevData) return null;
+
+        return {
+          ...prevData,
+          categories: [...prevData.categories, newCategory.trim()],
+        };
+      });
+      setNewCategory("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("✅ Updated Tool Data:", toolData);
-    setMessage("✅ Tool successfully updated!");
-    setTimeout(() => router.push(`/tool/${id}`), 2000);
+    setMessage("");
+
+    try {
+      console.log("📡 Updating tool data:", toolData);
+
+      if (!toolData) {
+        setMessage("Error: No tool data available.");
+        return;
+      }
+
+      const response = await fetch(`/api/updateTool?id=${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(toolData),
+      });
+
+      const data = await response.json();
+      console.log("✅ Tool updated:", data);
+
+      if (response.ok) {
+        setMessage("✅ Tool updated successfully!");
+        setTimeout(() => router.push("/tools"), 2000);
+      } else {
+        setMessage(data.error || "Error updating tool");
+      }
+    } catch (error) {
+      console.error("❌ Network error:", error);
+      setMessage("Error updating tool");
+    }
   };
 
-  if (loading) return <p className="text-center mt-5 text-muted">📢 Loading tool details...</p>;
+  if (loading) return <p>Loading tool data...</p>;
+  if (!toolData) return <p>{message}</p>;
 
   return (
     <div className="container mt-4">
-      <Button variant="secondary" onClick={() => router.back()} className="mb-3">
-        ← Back
-      </Button>
-
-      <h1 className="h3 mb-4">Edit {toolData.name}</h1>
-
-      {message && <p className="alert alert-success">{message}</p>}
+      <h1>Edit Tool</h1>
+      {message && <p className="alert alert-danger">{message}</p>}
 
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
@@ -103,18 +166,34 @@ export default function EditToolPage() {
           <Form.Control as="textarea" name="description" value={toolData.description} onChange={handleChange} required />
         </Form.Group>
 
-        {/* ✅ Category Selection */}
         <Form.Group className="mb-3">
-          <Form.Label>Select Categories:</Form.Label>
-          {categoryOptions.map((category) => (
-            <Form.Check
-              key={category}
-              type="checkbox"
-              label={category}
-              checked={toolData.categories.includes(category)}
-              onChange={() => handleCategoryChange(category)}
+          <Form.Label className="fw-bold">Select Categories:</Form.Label>
+          <div className="d-flex flex-wrap gap-3">
+            {categoryOptions.map((category) => (
+              <div key={category} className="form-check d-flex align-items-center">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id={category}
+                  checked={Array.isArray(toolData.categories) && toolData.categories.includes(category)}
+                  onChange={() => handleCategoryChange(category)}
+                />
+                <label htmlFor={category} className="form-check-label ms-2">{category}</label>
+              </div>
+            ))}
+          </div>
+
+          <div className="d-flex mt-2">
+            <Form.Control
+              type="text"
+              placeholder="Add a new category..."
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
             />
-          ))}
+            <Button variant="success" className="ms-2" onClick={handleAddNewCategory}>
+              ➕ Add
+            </Button>
+          </div>
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -127,14 +206,14 @@ export default function EditToolPage() {
           <Form.Control type="url" name="website" value={toolData.website} onChange={handleChange} required />
         </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Thumbnail URL</Form.Label>
-          <Form.Control type="text" name="thumbnail" value={toolData.thumbnail} onChange={handleChange} />
-        </Form.Group>
-
-        <Button variant="primary" type="submit">
-          Save Changes
-        </Button>
+        <div className="d-flex justify-content-between">
+          <Button variant="secondary" onClick={() => router.push("/tools")}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit">
+            Save Changes
+          </Button>
+        </div>
       </Form>
     </div>
   );

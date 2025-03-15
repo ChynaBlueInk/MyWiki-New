@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import "../styles/navbar.css";  // Import NavBar styles
+// import "@/lib/awsConfig"; // Temporary removal
+import "../styles/navbar.css";  
+import "../styles/global.css";  
+import "bootstrap/dist/css/bootstrap.min.css";  
 import NavBar from "../components/NavBar";
-import "../styles/global.css";  // ✅ Import the correct global.css file
-import "bootstrap/dist/css/bootstrap.min.css";  // ✅ Keep Bootstrap import
+import MyAuthProvider from "../components/AuthProvider"; // Ensure this is correctly imported
+import "@aws-amplify/ui-react/styles.css"; // Import Amplify UI styles
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
+  title: "MyWiki",
+  description: "An AI Tools Wiki",
 };
 
 export default function RootLayout({
@@ -17,8 +20,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <NavBar />  {/* Insert the NavBar at the top */}
-        {children}
+        <MyAuthProvider>  {/* Wrap the app in the correct Client Component */}
+          <NavBar />  
+          {children}
+        </MyAuthProvider>
       </body>
     </html>
   );

@@ -2,99 +2,95 @@
 
 import { useState, useEffect } from "react";
 import ToolCard from "../../components/ToolCard";
-import Categories from "../../components/Categories";
+import CategoryButtons from "../../components/CategoryButtons";
 
-interface Tool {
+type Review = {
   id: string;
+  user: string;
+  comment: string;
+  rating: number;
+};
+
+type Tool = {
+  toolId: string;
   name: string;
   description: string;
-  categories: string[];
-  pricing: string;
-  website: string;
-  thumbnail: string;
-  submittedBy: string;
-  dateSubmitted: string;
-  averageRating: number;
-  reviews: { id: string; user: string; comment: string; rating: number }[];
-}
+  categories?: string[];
+  category?: string; // ✅ Some tools may have `category`
+  pricing?: string;
+  website?: string;
+  submittedBy?: string;
+  dateSubmitted?: string;
+  thumbnail?: string;
+  averageRating?: number;
+  reviews?: Review[];
+};
 
 export default function CategoriesPage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [filteredTools, setFilteredTools] = useState<Tool[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Replace Firestore fetching with placeholder data
   useEffect(() => {
-    const sampleTools: Tool[] = [
-      {
-        id: "1",
-        name: "ChatGPT",
-        description: "AI chatbot by OpenAI",
-        categories: ["Writing", "Chatbot"],
-        pricing: "Free",
-        website: "https://openai.com/chatgpt",
-        thumbnail: "/placeholder.svg",
-        submittedBy: "John Doe",
-        dateSubmitted: "2025-03-01",
-        averageRating: 4.5,
-        reviews: [
-          { id: "r1", user: "Alice", comment: "Amazing chatbot!", rating: 5 },
-          { id: "r2", user: "Bob", comment: "Very useful for work.", rating: 4 },
-        ],
-      },
-      {
-        id: "2",
-        name: "DALL·E",
-        description: "AI image generation",
-        categories: ["Images", "Art"],
-        pricing: "Paid",
-        website: "https://openai.com/dalle",
-        thumbnail: "/placeholder.svg",
-        submittedBy: "Jane Smith",
-        dateSubmitted: "2025-03-01",
-        averageRating: 4.0,
-        reviews: [
-          { id: "r3", user: "Charlie", comment: "Creates beautiful images!", rating: 4 },
-          { id: "r4", user: "David", comment: "Could be more detailed.", rating: 3 },
-        ],
-      },
-    ];
-    setTools(sampleTools);
-    setFilteredTools(sampleTools);
+    const fetchTools = async () => {
+      try {
+        console.log("📡 Fetching tools from AWS DynamoDB...");
+        const response = await fetch("/api/getTools"); // ✅ Uses relative path for correct port
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch tools. Status: ${response.status}`);
+        }
+
+        let data: Tool[] = await response.json();
+        console.log("✅ Tools retrieved:", data);
+
+        // ✅ Normalize categories: Ensure all tools have `categories` as an array
+        const normalizedTools = data.map((tool) => ({
+          ...tool,
+          categories: tool.categories ?? (tool.category ? [tool.category] : []), // ✅ Convert `category` to `categories`
+        }));
+
+        setTools(normalizedTools);
+        setFilteredTools(normalizedTools); // ✅ Default to all tools
+        setLoading(false);
+      } catch (error) {
+        console.error("❌ Error fetching tools:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchTools();
   }, []);
 
-  // ✅ Filter tools based on selected category
-  useEffect(() => {
-    if (selectedCategory === "") {
-      setFilteredTools(tools);
+  const handleCategorySelect = (category: string | null) => {
+    if (category) {
+      setFilteredTools(tools.filter((tool) => tool.categories?.includes(category)));
     } else {
-      setFilteredTools(
-        tools.filter((tool) => tool.categories.includes(selectedCategory))
-      );
+      setFilteredTools(tools);
     }
-  }, [selectedCategory, tools]);
+  };
 
   return (
     <div className="container mt-4">
-      <h1 className="display-4">AI Tool Categories</h1>
-      <p className="lead">
-        Select a category to view relevant AI tools.
-      </p>
+      <h1>AI Tool Categories</h1>
+      <p>Select a category to view relevant AI tools.</p>
 
-      {/* ✅ Category Selection */}
-      <Categories onCategorySelect={setSelectedCategory} />
+      {/* ✅ Category Buttons */}
+      <CategoryButtons onCategorySelect={handleCategorySelect} />
 
-      <div className="row mt-3">
-        {filteredTools.length > 0 ? (
-          filteredTools.map((tool) => (
-            <div key={tool.id} className="col-md-4 mb-3">
-              <ToolCard {...tool} />
+      {loading ? (
+        <p>Loading tools...</p>
+      ) : filteredTools.length === 0 ? (
+        <p>No tools found for this category.</p>
+      ) : (
+        <div className="row">
+          {filteredTools.map((tool) => (
+            <div key={tool.toolId} className="col-md-6">
+              <ToolCard {...tool} onDelete={() => {}} /> {/* ✅ No-op function to prevent errors */}
             </div>
-          ))
-        ) : (
-          <p className="text-muted">No tools found for this category.</p>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

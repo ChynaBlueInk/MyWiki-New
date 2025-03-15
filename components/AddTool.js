@@ -1,138 +1,126 @@
-import { useState } from "react"
+import { useState, useEffect } from "react";
 
-const initialCategories = ["Writing", "Video", "Music", "Images", "All-Round"]
-
-function AddTool() {
-  const [toolData, setToolData] = useState({
+export default function AddTool() {
+  const [form, setForm] = useState({
     name: "",
     description: "",
     categories: [],
-    pricing: "",
     website: "",
-    submittedBy: "",
-    thumbnail: null,
-  })
-  const [categories, setCategories] = useState(initialCategories)
-  const [newCategory, setNewCategory] = useState("")
-  const [isAddingNewCategory, setIsAddingNewCategory] = useState(false)
+    rating: "",
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    // Here you would typically send this data to your backend
-    console.log("Submitting tool:", toolData)
-    // Redirect to home page after submission (you'll need to implement routing)
-  }
+  const [message, setMessage] = useState("");
+  const [categories, setCategories] = useState([]); // Store fetched categories
+  const [newCategory, setNewCategory] = useState(""); // Track new category input
+
+  // Fetch categories when component loads
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch("/api/getCategories");
+        if (!response.ok) throw new Error("Failed to fetch categories");
+
+        const data = await response.json();
+        console.log("✅ Fetched categories:", data);
+        setCategories(data);
+      } catch (error) {
+        console.error("❌ Error fetching categories:", error);
+      }
+    }
+
+    fetchCategories();
+  }, []);
 
   const handleChange = (e) => {
-    setToolData({ ...toolData, [e.target.name]: e.target.value })
-  }
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-  const handleCategoryChange = (category) => {
-    setToolData((prevData) => ({
-      ...prevData,
-      categories: prevData.categories.includes(category)
-        ? prevData.categories.filter((c) => c !== category)
-        : [...prevData.categories, category],
-    }))
-  }
+  // Handle category selection (checkboxes)
+  const handleCategoryChange = (e) => {
+    const selectedCategory = e.target.value;
+    setForm((prevForm) => ({
+      ...prevForm,
+      categories: prevForm.categories.includes(selectedCategory)
+        ? prevForm.categories.filter((cat) => cat !== selectedCategory)
+        : [...prevForm.categories, selectedCategory],
+    }));
+  };
 
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setToolData({ ...toolData, thumbnail: e.target.files[0] })
+  // Handle adding a new category
+  const handleAddNewCategory = async () => {
+    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
+      try {
+        const response = await fetch("/api/addCategory", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newCategory.trim() }),
+        });
+
+        if (!response.ok) throw new Error("Failed to add category");
+
+        // Update category list immediately after adding
+        setCategories((prevCategories) => [...prevCategories, newCategory.trim()]);
+        setForm((prevForm) => ({
+          ...prevForm,
+          categories: [...prevForm.categories, newCategory.trim()],
+        }));
+        setNewCategory("");
+      } catch (error) {
+        console.error("❌ Error adding category:", error);
+      }
     }
-  }
+  };
 
-  const handleAddNewCategory = () => {
-    if (newCategory && !categories.includes(newCategory)) {
-      setCategories([...categories, newCategory])
-      setToolData((prevData) => ({
-        ...prevData,
-        categories: [...prevData.categories, newCategory],
-      }))
-      setNewCategory("")
-      setIsAddingNewCategory(false)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+
+    if (!form.name || !form.description || form.categories.length === 0 || !form.website || !form.rating) {
+      setMessage("Please fill out all fields and select at least one category.");
+      return;
     }
-  }
+
+    try {
+      const response = await fetch("/api/addTool", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage("Tool added successfully!");
+        setForm({ name: "", description: "", categories: [], website: "", rating: "" });
+      } else {
+        setMessage(data.error || "Error adding tool");
+      }
+    } catch (error) {
+      setMessage("Error submitting tool");
+    }
+  };
 
   return (
-    <div className="container">
-      <h1 className="title">Add New AI Tool</h1>
-      <form onSubmit={handleSubmit} className="form">
-        <div className="form-group">
-          <label htmlFor="name">Tool Name</label>
-          <input type="text" id="name" name="name" value={toolData.name} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea id="description" name="description" value={toolData.description} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label>Categories (Select all that apply)</label>
-          <div className="categories-container">
-  {categories.map((category) => (
-    <div key={category} className="category-item">
-      <input
-        type="checkbox"
-        id={`category-${category}`}
-        checked={toolData.categories.includes(category)}
-        onChange={() => handleCategoryChange(category)}
-      />
-      <label htmlFor={`category-${category}`} className="category-label">{category}</label>
-    </div>
-  ))}
-
-          </div>
-          {!isAddingNewCategory ? (
-            <button type="button" className="button outline" onClick={() => setIsAddingNewCategory(true)}>
-              Add New Category
-            </button>
+    <div>
+      <h2>Add a New Tool</h2>
+      <form onSubmit={handleSubmit}>
+        <label>Categories:</label>
+        <div>
+          {categories.length > 0 ? (
+            categories.map((category) => (
+              <label key={category}>
+                <input type="checkbox" value={category} onChange={handleCategoryChange} />
+                {category}
+              </label>
+            ))
           ) : (
-            <div className="new-category-input">
-              <input
-                type="text"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                placeholder="Enter new category"
-              />
-              <button type="button" onClick={handleAddNewCategory}>
-                Add
-              </button>
-              <button type="button" className="outline" onClick={() => setIsAddingNewCategory(false)}>
-                Cancel
-              </button>
-            </div>
+            <p>Loading categories...</p>
           )}
         </div>
-        <div className="form-group">
-          <label htmlFor="pricing">Pricing</label>
-          <input type="text" id="pricing" name="pricing" value={toolData.pricing} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label htmlFor="website">Website</label>
-          <input type="url" id="website" name="website" value={toolData.website} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label htmlFor="submittedBy">Submitted By</label>
-          <input
-            type="text"
-            id="submittedBy"
-            name="submittedBy"
-            value={toolData.submittedBy}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="thumbnail">Thumbnail</label>
-          <input type="file" id="thumbnail" name="thumbnail" onChange={handleFileChange} accept="image/*" />
-        </div>
-        <button type="submit" className="button">
-          Add Tool
-        </button>
+
+        <input type="text" placeholder="Add a new category..." value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
+        <button type="button" onClick={handleAddNewCategory}>Add</button>
       </form>
     </div>
-  )
+  );
 }
-
-export default AddTool
-

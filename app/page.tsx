@@ -1,127 +1,152 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import ToolCard from "../components/ToolCard";
-import SearchBar from "../components/SearchBar";
-import Categories from "../components/Categories";
+import CategoryButtons from "../components/CategoryButtons";
+import { Button, Form } from "react-bootstrap";
 
-interface Review {
+type Review = {
   id: string;
   user: string;
   comment: string;
   rating: number;
-}
+};
 
-interface Tool {
-  id: string;
+type Tool = {
+  toolId: string;
   name: string;
   description: string;
-  categories: string[];
-  pricing: string;
-  website: string;
-  thumbnail: string;
-  submittedBy: string;
-  dateSubmitted: string;
-  averageRating: number;
-  reviews: Review[];
-}
+  categories?: string[];
+  category?: string;
+  pricing?: string;
+  website?: string;
+  submittedBy?: string;
+  dateSubmitted?: string;
+  thumbnail?: string;
+  averageRating?: number;
+  createdAt?: string;
+  reviews?: Review[];
+};
 
-export default function Home() {
+export default function HomePage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [filteredTools, setFilteredTools] = useState<Tool[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Replace Firestore fetching with placeholder data
   useEffect(() => {
-    const sampleTools: Tool[] = [
-      {
-        id: "1",
-        name: "ChatGPT",
-        description: "AI chatbot by OpenAI",
-        categories: ["Writing", "Chatbot"],
-        pricing: "Free",
-        website: "https://openai.com/chatgpt",
-        thumbnail: "/placeholder.svg",
-        submittedBy: "John Doe",
-        dateSubmitted: "2025-03-01",
-        averageRating: 4.5,
-        reviews: [
-          { id: "r1", user: "Alice", comment: "Amazing chatbot!", rating: 5 },
-          { id: "r2", user: "Bob", comment: "Very useful for work.", rating: 4 },
-        ],
-      },
-      {
-        id: "2",
-        name: "DALL·E",
-        description: "AI image generation",
-        categories: ["Images", "Art"],
-        pricing: "Paid",
-        website: "https://openai.com/dalle",
-        thumbnail: "/placeholder.svg",
-        submittedBy: "Jane Smith",
-        dateSubmitted: "2025-03-01",
-        averageRating: 4.0,
-        reviews: [
-          { id: "r3", user: "Charlie", comment: "Creates beautiful images!", rating: 4 },
-          { id: "r4", user: "David", comment: "Could be more detailed.", rating: 3 },
-        ],
-      },
-    ];
-    setTools(sampleTools);
-    setFilteredTools(sampleTools);
+    const fetchTools = async () => {
+      try {
+        console.log("📡 Fetching tools from AWS DynamoDB...");
+        const response = await fetch("/api/getTools"); // ✅ Uses correct API path
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch tools. Status: ${response.status}`);
+        }
+
+        let data: Tool[] = await response.json();
+        console.log("✅ Tools retrieved:", data);
+
+        // Normalize categories: Ensure `categories` is always an array
+        const normalizedTools = data.map((tool) => ({
+          ...tool,
+          categories: tool.categories ?? (tool.category ? [tool.category] : []),
+        }));
+
+        // Sort tools by `createdAt` (most recent first)
+        const sortedTools = normalizedTools.sort((a, b) => {
+          return new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime();
+        });
+
+        setTools(sortedTools);
+        setFilteredTools(sortedTools.slice(0, 4)); // Show only 4 recent tools on homepage
+        setLoading(false);
+      } catch (error) {
+        console.error("❌ Error fetching tools:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchTools();
   }, []);
 
-  // ✅ Implement search filtering
-  useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredTools(tools);
-    } else {
-      setFilteredTools(
-        tools.filter((tool) =>
-          tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          tool.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          tool.categories.some((category) =>
-            category.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        )
-      );
+  const handleDelete = async (toolId: string) => {
+    if (!window.confirm("Are you sure you want to delete this tool?")) return;
+
+    try {
+      console.log(`🗑️ Deleting tool: ${toolId}`);
+      const response = await fetch(`/api/deleteTool?toolId=${toolId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete tool");
+      }
+
+      console.log("✅ Tool deleted successfully");
+
+      // ✅ Remove deleted tool from UI instantly
+      setTools((prevTools) => prevTools.filter((tool) => tool.toolId !== toolId));
+      setFilteredTools((prevFilteredTools) => prevFilteredTools.filter((tool) => tool.toolId !== toolId));
+    } catch (error) {
+      console.error("❌ Error deleting tool:", error);
     }
-  }, [searchTerm, tools]);
+  };
 
   return (
     <div className="container mt-4">
-      <h1 className="display-4">AI Tools Wiki</h1>
-      <p className="lead">
-        Welcome to the AI Tools Wiki! This is a community-driven repository of AI tools.
-        Browse by category, search for tools, or add new ones.
-      </p>
+      <h1>Welcome to AI Tools Wiki</h1>
+      <p>This is a community-driven repository of AI tools. Browse by category or add new ones.</p>
 
-      {/* ✅ Search Bar for filtering */}
-      <SearchBar onSearch={(query: string) => setSearchTerm(query)} />
+      {/* ✅ Search Input */}
+      <Form.Group className="mb-3">
+        <Form.Control
+          type="text"
+          placeholder="Search AI Tools..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            if (e.target.value.trim() === "") {
+              setFilteredTools(tools.slice(0, 4)); // ✅ Reset to 4 most recent tools when search is cleared
+            } else {
+              setFilteredTools(
+                tools.filter((tool) =>
+                  tool.name.toLowerCase().includes(e.target.value.toLowerCase()) ||
+                  tool.description.toLowerCase().includes(e.target.value.toLowerCase())
+                )
+              );
+            }
+          }}
+        />
+      </Form.Group>
 
-      {/* ✅ Category Selection (TODO: Implement filtering logic) */}
-      <Categories onCategorySelect={() => { /* TODO: Implement category filtering */ }} />
+      {/* ✅ Category Filter Bar */}
+      <CategoryButtons onCategorySelect={(category) => {
+        if (category) {
+          setFilteredTools(tools.filter((tool) => tool.categories?.includes(category)));
+        } else {
+          setFilteredTools(tools.slice(0, 4)); // ✅ Reset to 4 most recent tools when no category is selected
+        }
+      }} />
 
-      <div className="text-center my-4">
-        <Link href="/add-tool">
-          <button className="btn btn-primary btn-lg">Add New AI Tool</button>
-        </Link>
-      </div>
+      <Button variant="success" href="/add-tool" className="mb-4">
+        ➕ Add New AI Tool
+      </Button>
 
-      <h2 className="h3 mb-4">Recently Added Tools</h2>
-
-      <div className="row">
-        {filteredTools.length > 0 ? (
-          filteredTools.map((tool) => (
-            <div key={tool.id} className="col-md-4 mb-3">
-              <ToolCard {...tool} />
+      <h2>Recently Added Tools</h2>
+      {loading ? (
+        <p>Loading tools...</p>
+      ) : filteredTools.length === 0 ? (
+        <p>No tools found.</p>
+      ) : (
+        <div className="row">
+          {filteredTools.map((tool) => (
+            <div key={tool.toolId} className="col-md-6">
+              <ToolCard {...tool} onDelete={() => handleDelete(tool.toolId)} /> {/* ✅ Fix: Pass delete function */}
             </div>
-          ))
-        ) : (
-          <p className="text-muted">📢 No matching tools found.</p>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

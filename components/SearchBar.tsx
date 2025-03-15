@@ -13,6 +13,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     onSearch(searchTerm.trim());
   };
 
+  const handleClear = () => {
+    setSearchTerm(""); // ✅ Reset input field
+    onSearch(""); // ✅ Reset the search state
+  };
+
   return (
     <Form onSubmit={handleSearch} className="mb-3">
       <InputGroup>
@@ -24,6 +29,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
           required
         />
         <Button type="submit" variant="primary">🔍 Search</Button>
+        {searchTerm && (
+          <Button type="button" variant="secondary" onClick={handleClear}>❌ Clear</Button>
+        )}
       </InputGroup>
     </Form>
   );

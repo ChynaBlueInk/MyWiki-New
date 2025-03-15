@@ -63,3 +63,71 @@ footer {
   background-color: #f8f9fa;
   border-top: 1px solid #ddd;
 }
+/* ✅ Fix Checkbox Size Consistency */
+.custom-checkbox {
+  width: 22px !important;
+  height: 22px !important;
+  appearance: none; /* Remove default browser styling */
+  border: 2px solid black; /* Ensure visible when unchecked */
+  border-radius: 4px; /* Rounded edges */
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+.custom-checkbox:checked {
+  background-color: black !important;
+  border-color: black !important;
+}
+
+.custom-checkbox:checked::before {
+  content: "✔";
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+/* ✅ Darker Borders for Input Fields & Textareas */
+input, textarea, select {
+  border: 2px solid #333 !important; /* Darker border */
+  border-radius: 5px;
+  padding: 8px;
+  font-size: 16px;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #222 !important; /* Even darker when active */
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* ✅ Fix Checkbox Size & Make Borders Darker */
+.custom-checkbox {
+  width: 22px !important;
+  height: 22px !important;
+  appearance: none; /* Remove default browser styling */
+  border: 2px solid #333 !important; /* Darker border */
+  border-radius: 4px; /* Rounded edges */
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+.custom-checkbox:checked {
+  background-color: black !important;
+  border-color: black !important;
+}
+
+.custom-checkbox:checked::before {
+  content: "✔";
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
