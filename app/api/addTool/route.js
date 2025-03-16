@@ -6,11 +6,12 @@ export async function POST(req) {
   console.log("✅ API `/api/addTool` reached");
 
   try {
+    // ✅ Ensure request body is correctly parsed
     const body = await req.json();
     console.log("📥 Received data:", body);
 
-    // ✅ Only `name` is required; everything else is optional
-    const { name, description, categories, website, rating } = body;
+    // ✅ Extract all form fields, ensuring defaults for missing values
+    const { name, description, categories, website, pricing, rating, review } = body;
     if (!name) {
       console.log("❌ Missing required field: name");
       return Response.json({ error: "Tool name is required" }, { status: 400 });
@@ -22,10 +23,12 @@ export async function POST(req) {
       Item: {
         toolId,
         name,
-        description: description || "", // ✅ Default to empty string if missing
-        categories: Array.isArray(categories) ? categories : [], // ✅ Ensure an array
-        website: website || "", // ✅ Default to empty string if missing
-        rating: rating !== undefined ? Number(rating) : null, // ✅ Default to `null` if missing
+        description: description || "",
+        categories: Array.isArray(categories) ? categories : [],
+        website: website || "",
+        pricing: pricing || "",
+        rating: rating !== undefined ? Number(rating) : null,
+        review: review || "",
         createdAt: new Date().toISOString(),
       },
     };
