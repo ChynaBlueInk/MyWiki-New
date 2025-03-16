@@ -10,6 +10,7 @@ export default function AddTool() {
     website: "",
     pricing: "",
     rating: 0, // Default to 0 for rating stars
+    review: "", // ✅ Added review field
   });
 
   const [message, setMessage] = useState("");
@@ -111,7 +112,7 @@ export default function AddTool() {
 
       if (response.ok) {
         setMessage("✅ Tool added successfully!");
-        setForm({ name: "", description: "", categories: [], website: "", pricing: "", rating: 0 });
+        setForm({ name: "", description: "", categories: [], website: "", pricing: "", rating: 0, review: "" });
       } else {
         setMessage(data.error || "Error adding tool");
       }
@@ -123,29 +124,16 @@ export default function AddTool() {
   return (
     <div className="container mt-4">
       <form onSubmit={handleSubmit} className="p-4">
+        {/* ✅ Name */}
         <label className="form-label">Name:</label>
         <input type="text" name="name" className="form-control" value={form.name} onChange={handleChange} required />
 
+        {/* ✅ Description */}
         <label className="form-label">Description:</label>
         <textarea name="description" className="form-control" value={form.description} onChange={handleChange} required />
 
-        <label className="form-label">Website:</label>
-        <input type="url" name="website" className="form-control" value={form.website} onChange={handleChange} required />
-
-        <label className="form-label">Pricing:</label>
-        <input type="text" name="pricing" className="form-control" value={form.pricing} onChange={handleChange} placeholder="Free, Paid, Subscription, etc." />
-
-        {/* ✅ Star Rating System */}
-        <label className="form-label">Rating:</label>
-        <div className="mb-3">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <span key={star} className={`star ${form.rating >= star ? "text-warning" : "text-secondary"}`} onClick={() => handleRatingChange(star)} style={{ cursor: "pointer", fontSize: "1.5rem" }}>
-              ★
-            </span>
-          ))}
-        </div>
-
-        <label className="form-label">Categories:</label>
+        {/* ✅ Select Categories */}
+        <label className="form-label">Select Categories:</label>
         <div>
           {loading ? (
             <p>Loading categories...</p>
@@ -160,9 +148,33 @@ export default function AddTool() {
           )}
         </div>
 
+        {/* ✅ Add New Category */}
         <input type="text" className="form-control mt-2" placeholder="Add a new category..." value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
         <button type="button" className="btn btn-secondary mt-2" onClick={handleAddNewCategory}>Add Category</button>
 
+        {/* ✅ Pricing */}
+        <label className="form-label mt-3">Pricing:</label>
+        <input type="text" name="pricing" className="form-control" value={form.pricing} onChange={handleChange} placeholder="Free, Paid, Subscription, etc." />
+
+        {/* ✅ Website */}
+        <label className="form-label mt-3">Website:</label>
+        <input type="url" name="website" className="form-control" value={form.website} onChange={handleChange} required />
+
+        {/* ✅ Rating (Stars) */}
+        <label className="form-label mt-3">Rating:</label>
+        <div className="mb-3">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span key={star} className={`star ${form.rating >= star ? "text-warning" : "text-secondary"}`} onClick={() => handleRatingChange(star)} style={{ cursor: "pointer", fontSize: "1.5rem" }}>
+              ★
+            </span>
+          ))}
+        </div>
+
+        {/* ✅ Review */}
+        <label className="form-label">Review:</label>
+        <textarea name="review" className="form-control" value={form.review} onChange={handleChange} />
+
+        {/* ✅ Submit Button */}
         <button type="submit" className="btn btn-primary mt-3">Submit Tool</button>
       </form>
 
