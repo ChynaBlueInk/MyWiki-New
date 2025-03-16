@@ -2,12 +2,17 @@
 
 import { useState } from "react";
 import AddTool from "../../components/AddTool";
+import { useRouter } from "next/navigation";
 
 export default function AddToolPage() {
+  const router = useRouter();
+
   return (
     <div className="container mt-4">
-      <h1>Add a New Tool</h1>
-      <AddTool />
+      <h2 className="text-center">Add a New Tool</h2>
+      <div className="card p-4 shadow-lg">
+        <AddTool />
+      </div>
     </div>
   );
 }
