@@ -16,7 +16,7 @@ type Tool = {
   name: string;
   description: string;
   categories?: string[];
-  category?: string; // ✅ Some tools may have `category`
+  category?: string;
   pricing?: string;
   website?: string;
   submittedBy?: string;
@@ -25,6 +25,9 @@ type Tool = {
   averageRating?: number;
   reviews?: Review[];
 };
+
+// Use environment variable for API URL (works in both localhost & Vercel)
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function CategoriesPage() {
   const [tools, setTools] = useState<Tool[]>([]);
@@ -35,7 +38,8 @@ export default function CategoriesPage() {
     const fetchTools = async () => {
       try {
         console.log("📡 Fetching tools from AWS DynamoDB...");
-        const response = await fetch("/api/getTools"); // ✅ Uses relative path for correct port
+
+        const response = await fetch(`${API_URL}/api/getTools`);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch tools. Status: ${response.status}`);
@@ -44,14 +48,14 @@ export default function CategoriesPage() {
         let data: Tool[] = await response.json();
         console.log("✅ Tools retrieved:", data);
 
-        // ✅ Normalize categories: Ensure all tools have `categories` as an array
+        // Normalize categories: Ensure all tools have categories as an array
         const normalizedTools = data.map((tool) => ({
           ...tool,
-          categories: tool.categories ?? (tool.category ? [tool.category] : []), // ✅ Convert `category` to `categories`
+          categories: tool.categories ?? (tool.category ? [tool.category] : []),
         }));
 
         setTools(normalizedTools);
-        setFilteredTools(normalizedTools); // ✅ Default to all tools
+        setFilteredTools(normalizedTools);
         setLoading(false);
       } catch (error) {
         console.error("❌ Error fetching tools:", error);
@@ -75,7 +79,7 @@ export default function CategoriesPage() {
       <h1>AI Tool Categories</h1>
       <p>Select a category to view relevant AI tools.</p>
 
-      {/* ✅ Category Buttons */}
+      {/* Category Buttons */}
       <CategoryButtons onCategorySelect={handleCategorySelect} />
 
       {loading ? (
@@ -86,7 +90,7 @@ export default function CategoriesPage() {
         <div className="row">
           {filteredTools.map((tool) => (
             <div key={tool.toolId} className="col-md-6">
-              <ToolCard {...tool} onDelete={() => {}} /> {/* ✅ No-op function to prevent errors */}
+              <ToolCard {...tool} onDelete={() => {}} />
             </div>
           ))}
         </div>

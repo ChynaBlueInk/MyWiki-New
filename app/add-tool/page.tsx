@@ -15,8 +15,10 @@ export default function AddToolPage() {
         const currentUser = await getCurrentUser();
         setUser(currentUser as AuthUser); // 👈 Ensure Type Safety
       } catch (error) {
-        router.push("/login"); // Redirect to login if not authenticated
-      } finally {
+// if (!user) {
+//   return <Login />;
+// }
+} finally {
         setLoading(false);
       }
     };
