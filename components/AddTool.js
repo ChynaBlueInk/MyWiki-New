@@ -8,8 +8,8 @@ export default function AddTool() {
     description: "",
     categories: [],
     website: "",
-    pricing: "", // ✅ Added pricing to match ToolCard
-    rating: "",
+    pricing: "",
+    rating: 0, // Default to 0 for rating stars
   });
 
   const [message, setMessage] = useState("");
@@ -55,6 +55,14 @@ export default function AddTool() {
     }));
   };
 
+  // ✅ Handle star rating selection
+  const handleRatingChange = (selectedRating) => {
+    setForm((prevForm) => ({
+      ...prevForm,
+      rating: selectedRating,
+    }));
+  };
+
   // ✅ Handle adding a new category
   const handleAddNewCategory = async () => {
     if (newCategory.trim() && !categories.includes(newCategory.trim())) {
@@ -87,7 +95,7 @@ export default function AddTool() {
     setMessage("");
 
     if (!form.name || !form.description || form.categories.length === 0 || !form.website || !form.rating) {
-      setMessage("Please fill out all fields and select at least one category.");
+      setMessage("❌ Please fill out all fields and select at least one category.");
       return;
     }
 
@@ -103,7 +111,7 @@ export default function AddTool() {
 
       if (response.ok) {
         setMessage("✅ Tool added successfully!");
-        setForm({ name: "", description: "", categories: [], website: "", pricing: "", rating: "" });
+        setForm({ name: "", description: "", categories: [], website: "", pricing: "", rating: 0 });
       } else {
         setMessage(data.error || "Error adding tool");
       }
@@ -114,32 +122,37 @@ export default function AddTool() {
 
   return (
     <div className="container mt-4">
-      <h2>Add a New Tool</h2>
-      <form onSubmit={handleSubmit} className="mt-3">
-        <label>Name:</label>
-        <input type="text" name="name" value={form.name} onChange={handleChange} required />
+      <form onSubmit={handleSubmit} className="p-4">
+        <label className="form-label">Name:</label>
+        <input type="text" name="name" className="form-control" value={form.name} onChange={handleChange} required />
 
-        <label>Description:</label>
-        <textarea name="description" value={form.description} onChange={handleChange} required />
+        <label className="form-label">Description:</label>
+        <textarea name="description" className="form-control" value={form.description} onChange={handleChange} required />
 
-        <label>Website:</label>
-        <input type="url" name="website" value={form.website} onChange={handleChange} required />
+        <label className="form-label">Website:</label>
+        <input type="url" name="website" className="form-control" value={form.website} onChange={handleChange} required />
 
-        <label>Pricing:</label>
-        <input type="text" name="pricing" value={form.pricing} onChange={handleChange} placeholder="Free, Paid, Subscription, etc." />
+        <label className="form-label">Pricing:</label>
+        <input type="text" name="pricing" className="form-control" value={form.pricing} onChange={handleChange} placeholder="Free, Paid, Subscription, etc." />
 
-        <label>Rating (1-5):</label>
-        <input type="number" name="rating" value={form.rating} onChange={handleChange} min="1" max="5" required />
+        {/* ✅ Star Rating System */}
+        <label className="form-label">Rating:</label>
+        <div className="mb-3">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span key={star} className={`star ${form.rating >= star ? "text-warning" : "text-secondary"}`} onClick={() => handleRatingChange(star)} style={{ cursor: "pointer", fontSize: "1.5rem" }}>
+              ★
+            </span>
+          ))}
+        </div>
 
-        <label>Categories:</label>
+        <label className="form-label">Categories:</label>
         <div>
           {loading ? (
             <p>Loading categories...</p>
           ) : categories.length > 0 ? (
             categories.map((category) => (
               <label key={category} className="d-block">
-                <input type="checkbox" value={category} onChange={handleCategoryChange} />
-                {category}
+                <input type="checkbox" value={category} onChange={handleCategoryChange} /> {category}
               </label>
             ))
           ) : (
@@ -147,15 +160,13 @@ export default function AddTool() {
           )}
         </div>
 
-        {/* ✅ Add a new category */}
-        <input type="text" placeholder="Add a new category..." value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
-        <button type="button" onClick={handleAddNewCategory}>Add Category</button>
+        <input type="text" className="form-control mt-2" placeholder="Add a new category..." value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
+        <button type="button" className="btn btn-secondary mt-2" onClick={handleAddNewCategory}>Add Category</button>
 
         <button type="submit" className="btn btn-primary mt-3">Submit Tool</button>
       </form>
 
-      {/* ✅ Display messages */}
-      {message && <p className="mt-3">{message}</p>}
+      {message && <p className="mt-3 alert alert-info">{message}</p>}
     </div>
   );
 }
