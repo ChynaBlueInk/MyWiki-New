@@ -134,23 +134,26 @@ export default function AddTool() {
 
         {/* ✅ Select Categories */}
         <label className="form-label">Select Categories:</label>
-        <div>
+        <div className="d-flex flex-wrap">
           {loading ? (
             <p>Loading categories...</p>
           ) : categories.length > 0 ? (
             categories.map((category) => (
-              <label key={category} className="d-block">
-                <input type="checkbox" value={category} onChange={handleCategoryChange} /> {category}
-              </label>
+              <div key={category} className="form-check me-3">
+                <input type="checkbox" className="form-check-input" value={category} onChange={handleCategoryChange} />
+                <label className="form-check-label">{category}</label>
+              </div>
             ))
           ) : (
             <p>No categories found. Try adding one below.</p>
           )}
         </div>
 
-        {/* ✅ Add New Category */}
-        <input type="text" className="form-control mt-2" placeholder="Add a new category..." value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
-        <button type="button" className="btn btn-secondary mt-2" onClick={handleAddNewCategory}>Add Category</button>
+        {/* ✅ Add New Category (Inline Button) */}
+        <div className="input-group mt-2">
+          <input type="text" className="form-control" placeholder="Add a new category..." value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
+          <button type="button" className="btn btn-secondary" onClick={handleAddNewCategory}>Add Category</button>
+        </div>
 
         {/* ✅ Pricing */}
         <label className="form-label mt-3">Pricing:</label>
