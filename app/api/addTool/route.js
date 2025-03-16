@@ -6,6 +6,10 @@ export async function POST(req) {
   console.log("✅ API `/api/addTool` reached");
 
   try {
+    // ✅ Ensure AWS_TABLE_NAME is defined or default to "MyWikiTools"
+    const tableName = process.env.AWS_TABLE_NAME || "MyWikiTools"; 
+    console.log("🛠️ Using DynamoDB Table:", tableName);
+
     // ✅ Ensure request body is correctly parsed
     const body = await req.json();
     console.log("📥 Received data:", body);
@@ -19,7 +23,7 @@ export async function POST(req) {
 
     const toolId = uuidv4();
     const params = {
-      TableName: process.env.AWS_TABLE_NAME,
+      TableName: tableName, // ✅ Ensures correct table name is used
       Item: {
         toolId,
         name,
