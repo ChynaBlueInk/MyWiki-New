@@ -97,9 +97,9 @@ export default function ToolsPage() {
     } else if (sortBy === "name-desc") {
       updatedTools.sort((a, b) => b.name.localeCompare(a.name));
     } else if (sortBy === "rating-high") {
-      updatedTools.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
+      updatedTools.sort((a, b) => (Number(b.averageRating) || 0) - (Number(a.averageRating) || 0));
     } else if (sortBy === "rating-low") {
-      updatedTools.sort((a, b) => (a.averageRating ?? 0) - (b.averageRating ?? 0));
+      updatedTools.sort((a, b) => (Number(a.averageRating) || 0) - (Number(b.averageRating) || 0));
     }
 
     setFilteredTools(updatedTools);
@@ -112,7 +112,6 @@ export default function ToolsPage() {
 
       {/* ✅ Search Bar */}
       <SearchBar onSearch={(query) => setSearchTerm(query)} />
-
 
       {/* ✅ Category Buttons */}
       <CategoryButtons onCategorySelect={setSelectedCategory} />
