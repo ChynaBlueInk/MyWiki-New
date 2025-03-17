@@ -54,10 +54,11 @@ export default function ToolsPage() {
         let data: Tool[] = await response.json();
         console.log("✅ Tools retrieved:", data);
 
-        // ✅ Normalize categories
+        // ✅ Normalize categories & ensure averageRating is a number
         const normalizedTools = data.map((tool) => ({
           ...tool,
           categories: tool.categories ?? (tool.category ? [tool.category] : []),
+          averageRating: typeof tool.averageRating === "number" ? tool.averageRating : 0, // ✅ Ensure averageRating is always a number
         }));
 
         setTools(normalizedTools);
@@ -97,9 +98,9 @@ export default function ToolsPage() {
     } else if (sortBy === "name-desc") {
       updatedTools.sort((a, b) => b.name.localeCompare(a.name));
     } else if (sortBy === "rating-high") {
-      updatedTools.sort((a, b) => (Number(b.averageRating) || 0) - (Number(a.averageRating) || 0));
+      updatedTools.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0)); // ✅ Ensure rating sorting works
     } else if (sortBy === "rating-low") {
-      updatedTools.sort((a, b) => (Number(a.averageRating) || 0) - (Number(b.averageRating) || 0));
+      updatedTools.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0)); // ✅ Lowest rated first
     }
 
     setFilteredTools(updatedTools);

@@ -23,6 +23,7 @@ interface ToolCardProps {
   submittedBy?: string;
   dateSubmitted?: string;
   thumbnail?: string;
+  averageRating?: number; // ✅ Ensure averageRating is included
   userId?: string;
   username?: string;
   onDelete: (toolId: string) => void;
@@ -38,6 +39,7 @@ export default function ToolCard({
   submittedBy,
   dateSubmitted,
   thumbnail,
+  averageRating = 0, // ✅ Default to 0 if missing
   userId,
   username,
   onDelete,
@@ -65,11 +67,8 @@ export default function ToolCard({
     fetchReviews();
   }, [toolId]);
 
-  // Calculate the overall average rating
-  const overallAverageRating =
-    reviews.length > 0
-      ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
-      : 0;
+  // ✅ Use `averageRating` from API instead of recalculating
+  const overallAverageRating = averageRating ?? 0;
 
   // Handle adding a new review
   const handleSubmitReview = async (e: React.FormEvent) => {
@@ -145,7 +144,7 @@ export default function ToolCard({
                 ★
               </span>
             ))}
-            <span className="ms-2">({overallAverageRating.toFixed(1)})</span>
+            <span className="ms-2">{overallAverageRating > 0 ? `(${overallAverageRating.toFixed(1)})` : "(No ratings yet)"}</span>
           </div>
         </div>
 
