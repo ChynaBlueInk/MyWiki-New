@@ -26,7 +26,7 @@ export default function RootLayout({
       <body>
         <MyAuthProvider>  {/* Wrap the app in the correct Client Component */}
           <NavBar />  
-          {children}
+          <main>{children}</main> {/* ✅ Wrap content inside <main> */}
         </MyAuthProvider>
       </body>
     </html>
