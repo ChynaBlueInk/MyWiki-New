@@ -9,35 +9,32 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        console.log("📡 Fetching categories...");
-        const response = await fetch("/api/getCategories");
+  // ✅ Function to fetch categories dynamically
+  const fetchCategories = async () => {
+    try {
+      console.log("📡 Fetching categories...");
+      const response = await fetch("/api/getCategories");
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch categories. Status: ${response.status}`);
-        }
-
-        const data: string[] = await response.json();
-        console.log("✅ Categories retrieved:", data);
-
-        setCategories(data);
-      } catch (error) {
-        console.error("❌ Error fetching categories:", error);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch categories. Status: ${response.status}`);
       }
-    };
 
+      const data: string[] = await response.json();
+      console.log("✅ Categories retrieved:", data);
+
+      setCategories(data);
+    } catch (error) {
+      console.error("❌ Error fetching categories:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchCategories();
   }, []);
 
-  // ✅ Fix: Add a refresh function to update categories after adding a new one
+  // ✅ Function to refresh categories after an update
   const refreshCategories = async () => {
-    const response = await fetch("/api/getCategories");
-    if (response.ok) {
-      const data: string[] = await response.json();
-      setCategories(data);
-    }
+    await fetchCategories();
   };
 
   const handleCategoryClick = (category: string | null) => {
@@ -60,11 +57,12 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
       ) : (
         <p>No categories available</p>
       )}
-      <Button
-        variant={!selectedCategory ? "dark" : "outline-dark"}
-        onClick={() => handleCategoryClick(null)}
-      >
+      <Button variant={!selectedCategory ? "dark" : "outline-dark"} onClick={() => handleCategoryClick(null)}>
         Show All
+      </Button>
+      {/* ✅ Fix: Ensure `onClick` is wrapped in a function */}
+      <Button variant="warning" onClick={() => refreshCategories()}>
+        🔄 Refresh Categories
       </Button>
     </div>
   );

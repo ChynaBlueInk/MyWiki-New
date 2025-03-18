@@ -22,15 +22,15 @@ type Tool = {
   pricing?: string;
   website?: string;
   submittedBy?: string;
-  dateSubmitted?: string;  // ✅ Ensure dateSubmitted is included
-  createdAt?: string;      // ✅ Ensure createdAt is included
+  dateSubmitted?: string;
+  createdAt?: string;
   thumbnail?: string;
   averageRating?: number;
   reviews?: Review[];
 };
 
 // Use environment variable for API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export default function ToolsPage() {
   const [tools, setTools] = useState<Tool[]>([]);
@@ -38,7 +38,7 @@ export default function ToolsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState("latest"); // ✅ Default sorting by newest first
+  const [sortBy, setSortBy] = useState("latest");
 
   useEffect(() => {
     const fetchTools = async () => {
@@ -58,11 +58,11 @@ export default function ToolsPage() {
         const normalizedTools = data.map((tool) => ({
           ...tool,
           categories: tool.categories ?? (tool.category ? [tool.category] : []),
-          averageRating: typeof tool.averageRating === "number" ? tool.averageRating : 0, // ✅ Ensure averageRating is always a number
+          averageRating: typeof tool.averageRating === "number" ? tool.averageRating : 0,
         }));
 
         setTools(normalizedTools);
-        setFilteredTools(normalizedTools); // ✅ Default to showing all tools
+        setFilteredTools(normalizedTools);
         setLoading(false);
       } catch (error) {
         console.error("❌ Error fetching tools:", error);
@@ -73,7 +73,8 @@ export default function ToolsPage() {
     fetchTools();
   }, []);
 
-  // ✅ Filter tools based on search & category selection
+  console.log("📌 Current Tools State:", tools);
+
   useEffect(() => {
     let updatedTools = [...tools];
 
@@ -84,23 +85,28 @@ export default function ToolsPage() {
     }
 
     if (selectedCategory) {
-      updatedTools = updatedTools.filter((tool) => tool.categories?.includes(selectedCategory));
+      updatedTools = updatedTools.filter(
+        (tool) => tool.categories?.includes(selectedCategory)
+      );
     }
+
+    console.log("🔍 Filtered Tools:", updatedTools);
 
     // ✅ Sorting Logic
     if (sortBy === "latest") {
-      updatedTools.sort((a, b) => 
-        new Date(b.dateSubmitted ?? b.createdAt ?? 0).getTime() - 
-        new Date(a.dateSubmitted ?? a.createdAt ?? 0).getTime()
+      updatedTools.sort(
+        (a, b) =>
+          new Date(b.dateSubmitted ?? b.createdAt ?? 0).getTime() -
+          new Date(a.dateSubmitted ?? a.createdAt ?? 0).getTime()
       );
     } else if (sortBy === "name-asc") {
       updatedTools.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortBy === "name-desc") {
       updatedTools.sort((a, b) => b.name.localeCompare(a.name));
     } else if (sortBy === "rating-high") {
-      updatedTools.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0)); // ✅ Ensure rating sorting works
+      updatedTools.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
     } else if (sortBy === "rating-low") {
-      updatedTools.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0)); // ✅ Lowest rated first
+      updatedTools.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0));
     }
 
     setFilteredTools(updatedTools);
@@ -114,8 +120,8 @@ export default function ToolsPage() {
       {/* ✅ Search Bar */}
       <SearchBar onSearch={(query) => setSearchTerm(query)} />
 
-      {/* ✅ Category Buttons */}
-      <CategoryButtons onCategorySelect={setSelectedCategory} />
+      {/* ✅ Fix for CategoryButtons */}
+      <CategoryButtons onCategorySelect={(category) => { setSelectedCategory(category); }} />
 
       {/* ✅ Sorting Dropdown */}
       <div className="mb-3">
@@ -132,7 +138,7 @@ export default function ToolsPage() {
       {loading ? (
         <p>Loading tools...</p>
       ) : filteredTools.length === 0 ? (
-        <p>No tools found.</p>
+        <p>🚨 No tools found! (Check Console Logs)</p>
       ) : (
         <div className="row">
           {filteredTools.map((tool) => (
