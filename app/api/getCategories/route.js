@@ -3,23 +3,23 @@ import AWS from "aws-sdk";
 AWS.config.update({ region: "ap-southeast-2" });
 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
-const TABLE_NAME = "Category"; // Ensure this matches your AWS table name
+const TABLE_NAME = "Category"; 
 
 export async function GET() {
   try {
     console.log("📡 Fetching categories from AWS DynamoDB...");
 
-    const params = {
-      TableName: TABLE_NAME,
-    };
-
+    const params = { TableName: TABLE_NAME };
     const { Items } = await dynamoDB.scan(params).promise();
+
     if (!Items || Items.length === 0) {
       console.log("⚠️ No categories found in AWS.");
       return new Response(JSON.stringify([]), { headers: { "Content-Type": "application/json" } });
     }
 
-    const categories = Items.map((item) => item.CategoryName);
+    // ✅ Fix: Ensure consistent category format
+    const categories = Items.map((item) => item.CategoryName.trim());
+
     console.log("✅ Categories retrieved:", categories);
 
     return new Response(JSON.stringify(categories), { headers: { "Content-Type": "application/json" } });

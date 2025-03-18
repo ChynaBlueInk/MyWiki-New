@@ -12,8 +12,8 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        console.log("📡 Fetching categories from AWS DynamoDB...");
-        const response = await fetch("/api/getCategories"); // ✅ Fetching only categories
+        console.log("📡 Fetching categories...");
+        const response = await fetch("/api/getCategories");
 
         if (!response.ok) {
           throw new Error(`Failed to fetch categories. Status: ${response.status}`);
@@ -22,7 +22,7 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
         const data: string[] = await response.json();
         console.log("✅ Categories retrieved:", data);
 
-        setCategories(data); // ✅ Replace existing categories instead of merging
+        setCategories(data);
       } catch (error) {
         console.error("❌ Error fetching categories:", error);
       }
@@ -30,6 +30,15 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
 
     fetchCategories();
   }, []);
+
+  // ✅ Fix: Add a refresh function to update categories after adding a new one
+  const refreshCategories = async () => {
+    const response = await fetch("/api/getCategories");
+    if (response.ok) {
+      const data: string[] = await response.json();
+      setCategories(data);
+    }
+  };
 
   const handleCategoryClick = (category: string | null) => {
     setSelectedCategory(category);

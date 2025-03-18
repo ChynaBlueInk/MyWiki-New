@@ -14,23 +14,23 @@ export async function POST(req) {
       return new Response(JSON.stringify({ error: "Category name is required" }), { status: 400 });
     }
 
-    // Ensure the category does not already exist
+    // ✅ Fix: Correctly check for existing category using scan & filter
     const checkParams = {
       TableName: TABLE_NAME,
-      KeyConditionExpression: "CategoryName = :name",
+      FilterExpression: "CategoryName = :name",
       ExpressionAttributeValues: { ":name": name }
     };
 
-    const existingCategory = await dynamoDB.query(checkParams).promise();
+    const existingCategory = await dynamoDB.scan(checkParams).promise();
     if (existingCategory.Items.length > 0) {
       return new Response(JSON.stringify({ error: "Category already exists" }), { status: 400 });
     }
 
-    // Add new category
+    // ✅ Fix: Ensure consistent category object
     const params = {
       TableName: TABLE_NAME,
       Item: {
-        CategoryName: name,
+        CategoryName: name.trim(),
         CreatedAt: new Date().toISOString(),
       },
     };

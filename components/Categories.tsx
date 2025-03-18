@@ -1,9 +1,30 @@
+import { useState, useEffect } from "react";
+
 interface CategoriesProps {
-  onCategorySelect: (category: string) => void; // ✅ Explicitly define prop type
+  onCategorySelect: (category: string) => void;
 }
 
 const Categories: React.FC<CategoriesProps> = ({ onCategorySelect }) => {
-  const categories = ["Writing", "Video", "Music", "Images", "All-Round"];
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/getCategories");
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch categories. Status: ${response.status}`);
+        }
+
+        const data: string[] = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error("❌ Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   return (
     <div className="mb-4">
@@ -18,7 +39,6 @@ const Categories: React.FC<CategoriesProps> = ({ onCategorySelect }) => {
             {category}
           </button>
         ))}
-        {/* ✅ TODO: Implement actual filtering logic */}
         <button className="btn btn-secondary" onClick={() => onCategorySelect("")}>
           Show All
         </button>
