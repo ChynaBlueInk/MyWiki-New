@@ -37,8 +37,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchTools = async () => {
       try {
-        console.log("📡 Fetching tools from AWS DynamoDB...");
-        const response = await fetch("/api/getTools"); // ✅ Uses correct API path
+        const response = await fetch("/api/getTools"); // ✅ Use relative path for local dev
 
         if (!response.ok) {
           throw new Error(`Failed to fetch tools. Status: ${response.status}`);
@@ -47,19 +46,17 @@ export default function HomePage() {
         let data: Tool[] = await response.json();
         console.log("✅ Tools retrieved:", data);
 
-        // Normalize categories: Ensure `categories` is always an array
         const normalizedTools = data.map((tool) => ({
           ...tool,
           categories: tool.categories ?? (tool.category ? [tool.category] : []),
         }));
 
-        // Sort tools by `createdAt` (most recent first)
         const sortedTools = normalizedTools.sort((a, b) => {
           return new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime();
         });
 
         setTools(sortedTools);
-        setFilteredTools(sortedTools.slice(0, 4)); // Show only 4 recent tools on homepage
+        setFilteredTools(sortedTools.slice(0, 4));
         setLoading(false);
       } catch (error) {
         console.error("❌ Error fetching tools:", error);
@@ -74,7 +71,6 @@ export default function HomePage() {
     if (!window.confirm("Are you sure you want to delete this tool?")) return;
 
     try {
-      console.log(`🗑️ Deleting tool: ${toolId}`);
       const response = await fetch(`/api/deleteTool?toolId=${toolId}`, {
         method: "DELETE",
       });
@@ -85,9 +81,8 @@ export default function HomePage() {
 
       console.log("✅ Tool deleted successfully");
 
-      // ✅ Remove deleted tool from UI instantly
-      setTools((prevTools) => prevTools.filter((tool) => tool.toolId !== toolId));
-      setFilteredTools((prevFilteredTools) => prevFilteredTools.filter((tool) => tool.toolId !== toolId));
+      setTools((prev) => prev.filter((tool) => tool.toolId !== toolId));
+      setFilteredTools((prev) => prev.filter((tool) => tool.toolId !== toolId));
     } catch (error) {
       console.error("❌ Error deleting tool:", error);
     }
@@ -98,7 +93,6 @@ export default function HomePage() {
       <h1>Welcome to AI Tools Wiki</h1>
       <p>This is a community-driven repository of AI tools. Browse by category or add new ones.</p>
 
-      {/* ✅ Search Input */}
       <Form.Group className="mb-3">
         <Form.Control
           type="text"
@@ -107,7 +101,7 @@ export default function HomePage() {
           onChange={(e) => {
             setSearchQuery(e.target.value);
             if (e.target.value.trim() === "") {
-              setFilteredTools(tools.slice(0, 4)); // ✅ Reset to 4 most recent tools when search is cleared
+              setFilteredTools(tools.slice(0, 4));
             } else {
               setFilteredTools(
                 tools.filter((tool) =>
@@ -120,12 +114,11 @@ export default function HomePage() {
         />
       </Form.Group>
 
-      {/* ✅ Category Filter Bar */}
       <CategoryButtons onCategorySelect={(category) => {
         if (category) {
           setFilteredTools(tools.filter((tool) => tool.categories?.includes(category)));
         } else {
-          setFilteredTools(tools.slice(0, 4)); // ✅ Reset to 4 most recent tools when no category is selected
+          setFilteredTools(tools.slice(0, 4));
         }
       }} />
 
@@ -142,7 +135,7 @@ export default function HomePage() {
         <div className="row">
           {filteredTools.map((tool) => (
             <div key={tool.toolId} className="col-md-6">
-              <ToolCard {...tool} onDelete={() => handleDelete(tool.toolId)} /> {/* ✅ Fix: Pass delete function */}
+              <ToolCard {...tool} onDelete={() => handleDelete(tool.toolId)} />
             </div>
           ))}
         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export default function AddTool() {
+export default function AddTool({ onToolAdded }) {
   const API_URL = typeof window !== "undefined" ? window.location.origin : ""; // ✅ Dynamic API URL
 
   const [form, setForm] = useState({
@@ -117,6 +117,7 @@ export default function AddTool() {
       if (response.ok) {
         setMessage("✅ Tool added successfully!");
         setForm({ name: "", description: "", categories: [], website: "", pricing: "", rating: 0, review: "" });
+        if (onToolAdded) onToolAdded(); // ✅ Call the callback function
       } else {
         setMessage(data.error || "Error adding tool");
       }

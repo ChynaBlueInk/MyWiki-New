@@ -11,14 +11,17 @@ export async function GET() {
   try {
     console.log("📡 Fetching tools from AWS DynamoDB...");
 
-    // ✅ Fetch all tools
     const toolsParams = { TableName: TOOLS_TABLE };
     const toolsData = await dynamoDB.scan(toolsParams).promise();
     let tools = toolsData.Items || [];
 
+    if (!Array.isArray(tools)) {
+      console.warn("⚠️ Tools data is not an array:", tools);
+      tools = [];
+    }
+
     console.log(`✅ Tools retrieved: ${tools.length}`);
 
-    // ✅ Fetch all reviews
     console.log("📡 Fetching reviews from AWS DynamoDB...");
     const reviewsParams = { TableName: REVIEWS_TABLE };
     const reviewsData = await dynamoDB.scan(reviewsParams).promise();
@@ -26,7 +29,6 @@ export async function GET() {
 
     console.log(`✅ Reviews retrieved: ${reviews.length}`);
 
-    // ✅ Calculate average ratings
     const toolRatings = {};
     reviews.forEach((review) => {
       if (review.toolId && typeof review.rating === "number") {
@@ -38,7 +40,6 @@ export async function GET() {
       }
     });
 
-    // ✅ Add average rating to tools
     tools = tools.map((tool) => {
       const ratingData = toolRatings[tool.toolId];
       const averageRating = ratingData
@@ -51,7 +52,6 @@ export async function GET() {
       };
     });
 
-    // ✅ Sort tools by latest date submitted
     const sortedTools = tools.sort(
       (a, b) =>
         new Date(b.dateSubmitted ?? b.createdAt ?? 0).getTime() -

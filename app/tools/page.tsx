@@ -29,11 +29,6 @@ type Tool = {
   reviews?: Review[];
 };
 
-// ✅ Dynamically set API URL to work on localhost and GitHub/Vercel
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== "undefined" ? window.location.origin : "");
-
 export default function ToolsPage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [filteredTools, setFilteredTools] = useState<Tool[]>([]);
@@ -46,9 +41,9 @@ export default function ToolsPage() {
   useEffect(() => {
     const fetchTools = async () => {
       try {
-        console.log("📡 Fetching tools from API:", `${API_URL}/api/getTools`);
+        console.log("📡 Fetching tools from /api/getTools");
 
-        const response = await fetch(`${API_URL}/api/getTools`, {
+        const response = await fetch("/api/getTools", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -66,7 +61,7 @@ export default function ToolsPage() {
           return;
         }
 
-        // ✅ Normalize categories & ensure averageRating is a number
+        // ✅ Normalize categories & averageRating
         const normalizedTools = data.map((tool) => ({
           ...tool,
           categories: tool.categories ?? (tool.category ? [tool.category] : []),
@@ -98,28 +93,33 @@ export default function ToolsPage() {
     }
 
     if (selectedCategory) {
-      updatedTools = updatedTools.filter(
-        (tool) => tool.categories?.includes(selectedCategory)
+      updatedTools = updatedTools.filter((tool) =>
+        tool.categories?.includes(selectedCategory)
       );
     }
 
     console.log("🔍 Filtered Tools:", updatedTools);
 
     // ✅ Sorting Logic
-    if (sortBy === "latest") {
-      updatedTools.sort(
-        (a, b) =>
-          new Date(b.dateSubmitted ?? b.createdAt ?? 0).getTime() -
-          new Date(a.dateSubmitted ?? a.createdAt ?? 0).getTime()
-      );
-    } else if (sortBy === "name-asc") {
-      updatedTools.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortBy === "name-desc") {
-      updatedTools.sort((a, b) => b.name.localeCompare(a.name));
-    } else if (sortBy === "rating-high") {
-      updatedTools.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
-    } else if (sortBy === "rating-low") {
-      updatedTools.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0));
+    switch (sortBy) {
+      case "name-asc":
+        updatedTools.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "name-desc":
+        updatedTools.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case "rating-high":
+        updatedTools.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+        break;
+      case "rating-low":
+        updatedTools.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0));
+        break;
+      default:
+        updatedTools.sort(
+          (a, b) =>
+            new Date(b.dateSubmitted ?? b.createdAt ?? 0).getTime() -
+            new Date(a.dateSubmitted ?? a.createdAt ?? 0).getTime()
+        );
     }
 
     setFilteredTools(updatedTools);
@@ -130,16 +130,11 @@ export default function ToolsPage() {
       <h1>AI Tools</h1>
       <p>Explore the latest AI tools.</p>
 
-      {/* ✅ Display Errors */}
       {error && <p className="alert alert-danger">{error}</p>}
 
-      {/* ✅ Search Bar */}
       <SearchBar onSearch={(query) => setSearchTerm(query)} />
+      <CategoryButtons onCategorySelect={(category) => setSelectedCategory(category)} />
 
-      {/* ✅ Fix for CategoryButtons */}
-      <CategoryButtons onCategorySelect={(category) => { setSelectedCategory(category); }} />
-
-      {/* ✅ Sorting Dropdown */}
       <div className="mb-3">
         <label className="form-label">Sort by:</label>
         <select className="form-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
@@ -154,7 +149,9 @@ export default function ToolsPage() {
       {loading ? (
         <p>Loading tools...</p>
       ) : filteredTools.length === 0 ? (
-        <p className="alert alert-warning">🚨 No tools found! Try searching or selecting a different category.</p>
+        <p className="alert alert-warning">
+          🚨 No tools found! Try searching or selecting a different category.
+        </p>
       ) : (
         <div className="row">
           {filteredTools.map((tool) => (
