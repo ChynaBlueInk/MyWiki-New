@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 export default function AddTool() {
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || ""; // Ensure API calls work on both localhost & Vercel
+  const API_URL = typeof window !== "undefined" ? window.location.origin : ""; // ✅ Dynamic API URL
 
   const [form, setForm] = useState({
     name: "",
@@ -9,27 +9,27 @@ export default function AddTool() {
     categories: [],
     website: "",
     pricing: "",
-    rating: 0, // Default to 0 for rating stars
-    review: "", // ✅ Added review field
+    rating: 0,
+    review: "",
   });
 
   const [message, setMessage] = useState("");
-  const [categories, setCategories] = useState([]); // Store fetched categories
-  const [newCategory, setNewCategory] = useState(""); // Track new category input
-  const [loading, setLoading] = useState(true); // Track loading state
+  const [categories, setCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch categories when component loads
+  // ✅ Fetch categories from DynamoDB when component loads
   useEffect(() => {
     async function fetchCategories() {
       try {
-        console.log("📡 Fetching categories from AWS...");
+        console.log("📡 Fetching categories from:", `${API_URL}/api/getCategories`);
         const response = await fetch(`${API_URL}/api/getCategories`);
 
         if (!response.ok) throw new Error("Failed to fetch categories");
 
         const data = await response.json();
-        console.log("✅ Fetched categories:", data);
-        setCategories(data);
+        console.log("✅ Categories retrieved:", data);
+        setCategories(data); // ✅ Update state with fetched categories
         setLoading(false);
       } catch (error) {
         console.error("❌ Error fetching categories:", error);
@@ -78,14 +78,17 @@ export default function AddTool() {
         if (!response.ok) throw new Error("Failed to add category");
 
         // ✅ Update category list immediately after adding
-        setCategories((prevCategories) => [...prevCategories, newCategory.trim()]);
+        const updatedCategories = [...categories, newCategory.trim()];
+        setCategories(updatedCategories);
         setForm((prevForm) => ({
           ...prevForm,
           categories: [...prevForm.categories, newCategory.trim()],
         }));
         setNewCategory("");
+        setMessage("✅ Category added successfully!");
       } catch (error) {
         console.error("❌ Error adding category:", error);
+        setMessage("❌ Error adding category.");
       }
     }
   };
@@ -95,6 +98,7 @@ export default function AddTool() {
     e.preventDefault();
     setMessage("");
 
+    // ✅ Enforce required fields for submitting a tool (not categories)
     if (!form.name || !form.description || form.categories.length === 0 || !form.website || !form.rating) {
       setMessage("❌ Please fill out all fields and select at least one category.");
       return;
@@ -140,7 +144,13 @@ export default function AddTool() {
           ) : categories.length > 0 ? (
             categories.map((category) => (
               <div key={category} className="form-check me-3">
-                <input type="checkbox" className="form-check-input" value={category} onChange={handleCategoryChange} />
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  value={category}
+                  onChange={handleCategoryChange}
+                  checked={form.categories.includes(category)}
+                />
                 <label className="form-check-label">{category}</label>
               </div>
             ))
@@ -149,10 +159,18 @@ export default function AddTool() {
           )}
         </div>
 
-        {/* ✅ Add New Category (Inline Button) */}
+        {/* ✅ Add New Category */}
         <div className="input-group mt-2">
-          <input type="text" className="form-control" placeholder="Add a new category..." value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
-          <button type="button" className="btn btn-secondary" onClick={handleAddNewCategory}>Add Category</button>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Add a new category..."
+            value={newCategory}
+            onChange={(e) => setNewCategory(e.target.value)}
+          />
+          <button type="button" className="btn btn-secondary" onClick={handleAddNewCategory}>
+            Add Category
+          </button>
         </div>
 
         {/* ✅ Pricing */}

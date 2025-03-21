@@ -16,7 +16,7 @@ export async function GET() {
     const toolsData = await dynamoDB.scan(toolsParams).promise();
     let tools = toolsData.Items || [];
 
-    console.log("✅ Tools retrieved:", tools.length);
+    console.log(`✅ Tools retrieved: ${tools.length}`);
 
     // ✅ Fetch all reviews
     console.log("📡 Fetching reviews from AWS DynamoDB...");
@@ -24,7 +24,7 @@ export async function GET() {
     const reviewsData = await dynamoDB.scan(reviewsParams).promise();
     const reviews = reviewsData.Items || [];
 
-    console.log("✅ Reviews retrieved:", reviews.length);
+    console.log(`✅ Reviews retrieved: ${reviews.length}`);
 
     // ✅ Calculate average ratings
     const toolRatings = {};
@@ -58,7 +58,7 @@ export async function GET() {
         new Date(a.dateSubmitted ?? a.createdAt ?? 0).getTime()
     );
 
-    console.log("✅ Final Tools:", sortedTools.length);
+    console.log(`✅ Final Tools: ${sortedTools.length}`);
     return NextResponse.json(sortedTools, { status: 200 });
 
   } catch (error) {

@@ -29,8 +29,10 @@ type Tool = {
   reviews?: Review[];
 };
 
-// Use environment variable for API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+// ✅ Dynamically set API URL to work on localhost and GitHub/Vercel
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== "undefined" ? window.location.origin : "");
 
 export default function ToolsPage() {
   const [tools, setTools] = useState<Tool[]>([]);
@@ -39,13 +41,17 @@ export default function ToolsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("latest");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchTools = async () => {
       try {
-        console.log("📡 Fetching tools from AWS DynamoDB...");
+        console.log("📡 Fetching tools from API:", `${API_URL}/api/getTools`);
 
-        const response = await fetch(`${API_URL}/api/getTools`);
+        const response = await fetch(`${API_URL}/api/getTools`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
 
         if (!response.ok) {
           throw new Error(`Failed to fetch tools. Status: ${response.status}`);
@@ -53,6 +59,12 @@ export default function ToolsPage() {
 
         let data: Tool[] = await response.json();
         console.log("✅ Tools retrieved:", data);
+
+        if (!Array.isArray(data) || data.length === 0) {
+          setError("No tools found. Try adding one!");
+          setLoading(false);
+          return;
+        }
 
         // ✅ Normalize categories & ensure averageRating is a number
         const normalizedTools = data.map((tool) => ({
@@ -66,6 +78,7 @@ export default function ToolsPage() {
         setLoading(false);
       } catch (error) {
         console.error("❌ Error fetching tools:", error);
+        setError("Failed to load tools. Please check console logs.");
         setLoading(false);
       }
     };
@@ -117,6 +130,9 @@ export default function ToolsPage() {
       <h1>AI Tools</h1>
       <p>Explore the latest AI tools.</p>
 
+      {/* ✅ Display Errors */}
+      {error && <p className="alert alert-danger">{error}</p>}
+
       {/* ✅ Search Bar */}
       <SearchBar onSearch={(query) => setSearchTerm(query)} />
 
@@ -138,7 +154,7 @@ export default function ToolsPage() {
       {loading ? (
         <p>Loading tools...</p>
       ) : filteredTools.length === 0 ? (
-        <p>🚨 No tools found! (Check Console Logs)</p>
+        <p className="alert alert-warning">🚨 No tools found! Try searching or selecting a different category.</p>
       ) : (
         <div className="row">
           {filteredTools.map((tool) => (

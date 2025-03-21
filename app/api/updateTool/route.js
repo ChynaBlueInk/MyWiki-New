@@ -12,8 +12,9 @@ export async function PUT(req) {
     console.log("🛠️ UPDATE Request Received");
 
     // ✅ Parse API request URL
-    const { searchParams } = new URL(req.url, process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001");
-    const toolId = searchParams.get("id");
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || req.headers.get("origin") || "http://localhost:3000";
+    const { searchParams } = new URL(req.url, API_URL);
+        const toolId = searchParams.get("id");
 
     if (!toolId) {
       console.log("❌ ERROR: Missing Tool ID");

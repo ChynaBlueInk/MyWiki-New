@@ -12,8 +12,9 @@ export async function DELETE(req) {
     console.log("🛠️ DELETE Request Received");
 
     // ✅ Ensure correct request URL parsing
-    const { searchParams } = new URL(req.url, process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001");
-    const toolId = searchParams.get("toolId");
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || req.headers.get("origin") || "http://localhost:3000";
+    const { searchParams } = new URL(req.url, API_URL);
+        const toolId = searchParams.get("toolId");
 
     if (!toolId) {
       console.error("❌ ERROR: Missing Tool ID");
