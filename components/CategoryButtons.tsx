@@ -9,26 +9,37 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // ✅ Fetch categories on mount
+  // ✅ Fetch categories and tools, then filter to only used categories
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchFilteredCategories = async () => {
       try {
-        console.log("📡 Fetching categories...");
-        const response = await fetch("/api/getCategories");
+        console.log("📡 Fetching categories and tools...");
+        const [catRes, toolsRes] = await Promise.all([
+          fetch("/api/getCategories"),
+          fetch("/api/getTools"),
+        ]);
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch categories. Status: ${response.status}`);
+        if (!catRes.ok || !toolsRes.ok) {
+          throw new Error("Failed to fetch categories or tools.");
         }
 
-        const data: string[] = await response.json();
-        console.log("✅ Categories retrieved:", data);
-        setCategories(data);
+        const catData: string[] = await catRes.json();
+        const toolsData: any[] = await toolsRes.json();
+
+        const usedCategories = new Set(
+          toolsData.flatMap((tool) => tool.categories || [])
+        );
+
+        const filtered = catData.filter((cat) => usedCategories.has(cat));
+        console.log("✅ Filtered categories:", filtered);
+
+        setCategories(filtered);
       } catch (error) {
-        console.error("❌ Error fetching categories:", error);
+        console.error("❌ Error fetching filtered categories:", error);
       }
     };
 
-    fetchCategories();
+    fetchFilteredCategories();
   }, []);
 
   const handleCategoryClick = (category: string | null) => {
