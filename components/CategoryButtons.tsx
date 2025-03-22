@@ -9,33 +9,27 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // ✅ Function to fetch categories dynamically
-  const fetchCategories = async () => {
-    try {
-      console.log("📡 Fetching categories...");
-      const response = await fetch("/api/getCategories");
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch categories. Status: ${response.status}`);
-      }
-
-      const data: string[] = await response.json();
-      console.log("✅ Categories retrieved:", data);
-
-      setCategories(data);
-    } catch (error) {
-      console.error("❌ Error fetching categories:", error);
-    }
-  };
-
+  // ✅ Fetch categories on mount
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        console.log("📡 Fetching categories...");
+        const response = await fetch("/api/getCategories");
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch categories. Status: ${response.status}`);
+        }
+
+        const data: string[] = await response.json();
+        console.log("✅ Categories retrieved:", data);
+        setCategories(data);
+      } catch (error) {
+        console.error("❌ Error fetching categories:", error);
+      }
+    };
+
     fetchCategories();
   }, []);
-
-  // ✅ Function to refresh categories after an update
-  const refreshCategories = async () => {
-    await fetchCategories();
-  };
 
   const handleCategoryClick = (category: string | null) => {
     setSelectedCategory(category);
@@ -59,10 +53,6 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
       )}
       <Button variant={!selectedCategory ? "dark" : "outline-dark"} onClick={() => handleCategoryClick(null)}>
         Show All
-      </Button>
-      {/* ✅ Fix: Ensure `onClick` is wrapped in a function */}
-      <Button variant="warning" onClick={() => refreshCategories()}>
-        🔄 Refresh Categories
       </Button>
     </div>
   );

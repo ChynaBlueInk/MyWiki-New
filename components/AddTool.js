@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AddTool({ onToolAdded }) {
+  const router = useRouter();
   const API_URL = typeof window !== "undefined" ? window.location.origin : "";
 
   const [form, setForm] = useState({
@@ -102,9 +104,18 @@ export default function AddTool({ onToolAdded }) {
 
       if (response.ok) {
         setMessage("✅ Tool added successfully!");
-        setForm({ name: "", description: "", categories: [], website: "", pricing: "", rating: 0, review: "" });
+        setForm({
+          name: "",
+          description: "",
+          categories: [],
+          website: "",
+          pricing: "",
+          rating: 0,
+          review: "",
+        });
+
         if (onToolAdded && data.toolId) {
-          onToolAdded(data.toolId); // ✅ Redirect to new tool page
+          onToolAdded(data.toolId); // ✅ Redirects to tool detail page
         }
       } else {
         setMessage(data.error || "Error adding tool");
@@ -160,15 +171,34 @@ export default function AddTool({ onToolAdded }) {
         </div>
 
         <label className="form-label mt-3">Pricing:</label>
-        <input type="text" name="pricing" className="form-control" value={form.pricing} onChange={handleChange} placeholder="Free, Paid, Subscription, etc." />
+        <input
+          type="text"
+          name="pricing"
+          className="form-control"
+          value={form.pricing}
+          onChange={handleChange}
+          placeholder="Free, Paid, Subscription, etc."
+        />
 
         <label className="form-label mt-3">Website:</label>
-        <input type="url" name="website" className="form-control" value={form.website} onChange={handleChange} required />
+        <input
+          type="url"
+          name="website"
+          className="form-control"
+          value={form.website}
+          onChange={handleChange}
+          required
+        />
 
         <label className="form-label mt-3">Rating:</label>
         <div className="mb-3">
           {[1, 2, 3, 4, 5].map((star) => (
-            <span key={star} className={`star ${form.rating >= star ? "text-warning" : "text-secondary"}`} onClick={() => handleRatingChange(star)} style={{ cursor: "pointer", fontSize: "1.5rem" }}>
+            <span
+              key={star}
+              className={`star ${form.rating >= star ? "text-warning" : "text-secondary"}`}
+              onClick={() => handleRatingChange(star)}
+              style={{ cursor: "pointer", fontSize: "1.5rem" }}
+            >
               ★
             </span>
           ))}
@@ -177,10 +207,19 @@ export default function AddTool({ onToolAdded }) {
         <label className="form-label">Review:</label>
         <textarea name="review" className="form-control" value={form.review} onChange={handleChange} />
 
-        <button type="submit" className="btn btn-primary mt-3">Submit Tool</button>
+        <button type="submit" className="btn btn-primary mt-3">
+          Submit Tool
+        </button>
       </form>
 
-      {message && <p className="mt-3 alert alert-info">{message}</p>}
+      {message && (
+        <div className="mt-3 alert alert-info d-flex justify-content-between align-items-center">
+          <span>{message}</span>
+          <button className="btn btn-outline-success btn-sm" onClick={() => router.push("/tools")}>
+            ← Back to Tools
+          </button>
+        </div>
+      )}
     </div>
   );
 }

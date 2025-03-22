@@ -1,11 +1,10 @@
-// ✅ File: app/tools/page.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
 import ToolCard from "../../components/ToolCard";
 import CategoryButtons from "../../components/CategoryButtons";
 import SearchBar from "../../components/SearchBar";
+import { Button } from "react-bootstrap";
 
 // Define types
 type Review = {
@@ -38,6 +37,7 @@ export default function ToolsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("latest");
+  const [viewMode, setViewMode] = useState<"card" | "list">("card");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -94,7 +94,6 @@ export default function ToolsPage() {
       );
     }
 
-    // ✅ Sorting Logic
     switch (sortBy) {
       case "name-asc":
         updatedTools.sort((a, b) => a.name.localeCompare(b.name));
@@ -131,28 +130,65 @@ export default function ToolsPage() {
       <SearchBar onSearch={(query) => setSearchTerm(query)} />
       <CategoryButtons onCategorySelect={(category) => setSelectedCategory(category)} />
 
-      <div className="mb-3">
-        <label className="form-label">Sort by:</label>
-        <select className="form-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-          <option value="latest">Latest Added</option>
-          <option value="name-asc">Name (A-Z)</option>
-          <option value="name-desc">Name (Z-A)</option>
-          <option value="rating-high">Highest Rated</option>
-          <option value="rating-low">Lowest Rated</option>
-        </select>
+      {/* Sort & View Controls */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <div style={{ flex: 1 }}>
+          <label className="form-label">Sort by:</label>
+          <select
+            className="form-select"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="latest">Latest Added</option>
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+            <option value="rating-high">Highest Rated</option>
+            <option value="rating-low">Lowest Rated</option>
+          </select>
+        </div>
+
+        <div className="ms-3">
+          <Button
+            variant={viewMode === "card" ? "primary" : "outline-primary"}
+            onClick={() => setViewMode("card")}
+            className="me-2"
+          >
+            🧩 Card View
+          </Button>
+          <Button
+            variant={viewMode === "list" ? "primary" : "outline-primary"}
+            onClick={() => setViewMode("list")}
+          >
+            📋 List View
+          </Button>
+        </div>
       </div>
 
+      {/* Tool Listing */}
       {loading ? (
         <p>Loading tools...</p>
       ) : filteredTools.length === 0 ? (
         <p className="alert alert-warning">
           🚨 No tools found! Try searching or selecting a different category.
         </p>
-      ) : (
+      ) : viewMode === "card" ? (
         <div className="row">
           {filteredTools.map((tool) => (
             <div key={tool.toolId} className="col-md-6">
               <ToolCard {...tool} onDelete={() => {}} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="list-group">
+          {filteredTools.map((tool) => (
+            <div key={tool.toolId} className="list-group-item py-3">
+              <h5>{tool.name}</h5>
+              <p className="text-muted">{tool.categories?.join(", ")}</p>
+              <p>{tool.description}</p>
+              <a href={`/tool/${tool.toolId}`} className="btn btn-sm btn-outline-primary">
+                View Details
+              </a>
             </div>
           ))}
         </div>

@@ -7,7 +7,7 @@ export default function AddToolPage() {
   const router = useRouter();
 
   const handleToolAdded = (toolId: string) => {
-    router.push(`/tool/${toolId}`); // ✅ Redirect to the tool detail page
+    router.push(`/tool/${toolId}?submitted=true`);
   };
 
   return (

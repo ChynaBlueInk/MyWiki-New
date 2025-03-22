@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { Button, Form } from "react-bootstrap";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { Button, Form, Alert } from "react-bootstrap";
 
 export default function ToolDetailPage() {
   const { id } = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [tool, setTool] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [rating, setRating] = useState<number>(0);
@@ -14,7 +16,8 @@ export default function ToolDetailPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch tool details on load
+  const wasSubmitted = searchParams?.get("submitted") === "true";
+
   useEffect(() => {
     const fetchTool = async () => {
       try {
@@ -31,7 +34,6 @@ export default function ToolDetailPage() {
     fetchTool();
   }, [id]);
 
-  // ✅ Fetch reviews
   const fetchReviews = async () => {
     try {
       const res = await fetch(`/api/getReviews?toolId=${id}`);
@@ -46,7 +48,6 @@ export default function ToolDetailPage() {
     fetchReviews();
   }, [id]);
 
-  // ✅ Recalculate averageRating whenever reviews change
   useEffect(() => {
     if (reviews.length > 0) {
       const total = reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
@@ -57,12 +58,9 @@ export default function ToolDetailPage() {
     }
   }, [reviews]);
 
-  // ✅ Submit a review
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!comment || rating < 1) return;
-
-    console.log("📝 Submitting review for toolId:", id); // ✅ LOG HERE
 
     const newReview = {
       reviewId: `temp-${Date.now()}`,
@@ -71,9 +69,7 @@ export default function ToolDetailPage() {
       comment,
     };
 
-    // ✅ Optimistically add review
     setReviews((prev) => [...prev, newReview]);
-
     setComment("");
     setRating(0);
     setSubmitted(true);
@@ -90,7 +86,7 @@ export default function ToolDetailPage() {
         }),
       });
 
-      fetchReviews(); // ✅ Confirm from DB
+      fetchReviews();
     } catch (err) {
       console.error("❌ Review submission failed:", err);
     }
@@ -112,8 +108,7 @@ export default function ToolDetailPage() {
         {averageRating > 0 ? (
           <>
             {"★".repeat(Math.round(averageRating)) +
-              "☆".repeat(5 - Math.round(averageRating))}{" "}
-            ({averageRating})
+              "☆".repeat(5 - Math.round(averageRating))} ( {averageRating} )
           </>
         ) : (
           "No ratings yet"
@@ -126,6 +121,15 @@ export default function ToolDetailPage() {
       <a href={`/tool/${tool.toolId}/edit`} className="btn btn-warning me-2">
         ✏️ Edit
       </a>
+
+      {wasSubmitted && (
+        <Alert variant="success" className="mt-4">
+          ✅ Tool created successfully! Your initial review was saved.
+          <div className="mt-2">
+            <Button variant="outline-success" onClick={() => router.push("/tools")}>← Back to Tools</Button>
+          </div>
+        </Alert>
+      )}
 
       <hr />
       <h4>Reviews</h4>
