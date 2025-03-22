@@ -1,3 +1,5 @@
+// ✅ File: app/tools/page.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -41,8 +43,6 @@ export default function ToolsPage() {
   useEffect(() => {
     const fetchTools = async () => {
       try {
-        console.log("📡 Fetching tools from /api/getTools");
-
         const response = await fetch("/api/getTools", {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -53,7 +53,6 @@ export default function ToolsPage() {
         }
 
         let data: Tool[] = await response.json();
-        console.log("✅ Tools retrieved:", data);
 
         if (!Array.isArray(data) || data.length === 0) {
           setError("No tools found. Try adding one!");
@@ -61,7 +60,6 @@ export default function ToolsPage() {
           return;
         }
 
-        // ✅ Normalize categories & averageRating
         const normalizedTools = data.map((tool) => ({
           ...tool,
           categories: tool.categories ?? (tool.category ? [tool.category] : []),
@@ -81,8 +79,6 @@ export default function ToolsPage() {
     fetchTools();
   }, []);
 
-  console.log("📌 Current Tools State:", tools);
-
   useEffect(() => {
     let updatedTools = [...tools];
 
@@ -98,8 +94,6 @@ export default function ToolsPage() {
       );
     }
 
-    console.log("🔍 Filtered Tools:", updatedTools);
-
     // ✅ Sorting Logic
     switch (sortBy) {
       case "name-asc":
@@ -114,12 +108,14 @@ export default function ToolsPage() {
       case "rating-low":
         updatedTools.sort((a, b) => (a.averageRating || 0) - (b.averageRating || 0));
         break;
+      case "latest":
       default:
-        updatedTools.sort(
-          (a, b) =>
-            new Date(b.dateSubmitted ?? b.createdAt ?? 0).getTime() -
-            new Date(a.dateSubmitted ?? a.createdAt ?? 0).getTime()
-        );
+        updatedTools.sort((a, b) => {
+          const dateA = new Date(a.createdAt || a.dateSubmitted || 0).getTime();
+          const dateB = new Date(b.createdAt || b.dateSubmitted || 0).getTime();
+          return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+        });
+        break;
     }
 
     setFilteredTools(updatedTools);

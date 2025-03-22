@@ -1,38 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Form, Button } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { Button, Form } from "react-bootstrap";
 
-export default function EditToolPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
-  const { id } = params;
-  const [toolData, setToolData] = useState<any>(null);
+export default function ToolDetailPage() {
+  const { id } = useParams();
+  const [tool, setTool] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [rating, setRating] = useState<number>(0);
+  const [comment, setComment] = useState("");
+  const [averageRating, setAverageRating] = useState<number>(0);
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<string | null>(null);
-  const [customCategory, setCustomCategory] = useState<string>("");
 
-  const defaultCategories: string[] = ["Writing", "Video", "Music", "Images", "All-Round"];
-
+  // ✅ Fetch tool details on load
   useEffect(() => {
     const fetchTool = async () => {
       try {
-        console.log(`📡 Fetching tool details for ID: ${id}`);
-        const response = await fetch(`/api/getTool?id=${id}`); // ✅ FIX: Use relative API path
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch tool details");
-        }
-
-        const data = await response.json();
-        console.log("✅ Tool data loaded:", data);
-
-        setToolData({
-          ...data,
-          categories: Array.isArray(data.categories) ? data.categories : [],
-        });
-      } catch (error) {
-        console.error("❌ Error fetching tool:", error);
+        const res = await fetch(`/api/getTool?id=${id}`);
+        const data = await res.json();
+        setTool(data);
+      } catch (err) {
+        console.error("❌ Failed to load tool:", err);
       } finally {
         setLoading(false);
       }
@@ -41,118 +31,149 @@ export default function EditToolPage({ params }: { params: { id: string } }) {
     fetchTool();
   }, [id]);
 
-  const handleCategoryChange = (category: string) => {
-    setToolData((prev: any) => ({
-      ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter((c: string) => c !== category)
-        : [...prev.categories, category],
-    }));
-  };
-
-  const handleNewCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCustomCategory(e.target.value);
-  };
-
-  const handleAddNewCategory = () => {
-    if (customCategory.trim() && !toolData.categories.includes(customCategory.trim())) {
-      setToolData((prev: any) => ({
-        ...prev,
-        categories: [...prev.categories, customCategory.trim()],
-      }));
-      setCustomCategory("");
+  // ✅ Fetch reviews
+  const fetchReviews = async () => {
+    try {
+      const res = await fetch(`/api/getReviews?toolId=${id}`);
+      const data = await res.json();
+      setReviews(data);
+    } catch (err) {
+      console.error("❌ Failed to load reviews:", err);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setToolData({ ...toolData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    fetchReviews();
+  }, [id]);
 
+  // ✅ Recalculate averageRating whenever reviews change
+  useEffect(() => {
+    if (reviews.length > 0) {
+      const total = reviews.reduce((sum, r) => sum + (r.rating || 0), 0);
+      const avg = total / reviews.length;
+      setAverageRating(Number(avg.toFixed(1)));
+    } else {
+      setAverageRating(0);
+    }
+  }, [reviews]);
+
+  // ✅ Submit a review
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage("");
+    if (!comment || rating < 1) return;
+
+    console.log("📝 Submitting review for toolId:", id); // ✅ LOG HERE
+
+    const newReview = {
+      reviewId: `temp-${Date.now()}`,
+      username: "Anonymous",
+      rating,
+      comment,
+    };
+
+    // ✅ Optimistically add review
+    setReviews((prev) => [...prev, newReview]);
+
+    setComment("");
+    setRating(0);
+    setSubmitted(true);
 
     try {
-      console.log("📡 Updating tool data:", toolData);
-      const response = await fetch(`/api/updateTool?id=${id}`, {
-        method: "PUT",
+      await fetch(`/api/addReview`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toolData),
+        body: JSON.stringify({
+          toolId: id,
+          username: "Anonymous",
+          rating,
+          comment,
+        }),
       });
 
-      const data = await response.json();
-      console.log("✅ Tool updated:", data);
-
-      if (response.ok) {
-        setMessage("✅ Tool updated successfully!");
-        setTimeout(() => router.push("/tools"), 2000);
-      } else {
-        setMessage(data.error || "Error updating tool");
-      }
-    } catch (error) {
-      console.error("❌ Network error:", error);
-      setMessage("Error updating tool");
+      fetchReviews(); // ✅ Confirm from DB
+    } catch (err) {
+      console.error("❌ Review submission failed:", err);
     }
   };
 
-  if (loading) return <p>Loading tool data...</p>;
-  if (!toolData) return <p>Error loading tool data. Please try again.</p>;
+  if (loading || !tool) return <p>Loading tool details...</p>;
 
   return (
     <div className="container mt-4">
-      <h1>Edit Tool</h1>
-      {message && <p className="alert alert-success">{message}</p>}
+      <h2>{tool.name}</h2>
+      <p className="text-muted">{tool.categories?.join(", ")}</p>
+      <p>{tool.description}</p>
+      <p>
+        <strong>Submitted by:</strong> {tool.submittedBy || "Unknown"}
+      </p>
 
+      <div className="mb-3">
+        <strong>Rating:</strong>{" "}
+        {averageRating > 0 ? (
+          <>
+            {"★".repeat(Math.round(averageRating)) +
+              "☆".repeat(5 - Math.round(averageRating))}{" "}
+            ({averageRating})
+          </>
+        ) : (
+          "No ratings yet"
+        )}
+      </div>
+
+      <a href={tool.website} target="_blank" className="btn btn-primary me-2">
+        Visit Website
+      </a>
+      <a href={`/tool/${tool.toolId}/edit`} className="btn btn-warning me-2">
+        ✏️ Edit
+      </a>
+
+      <hr />
+      <h4>Reviews</h4>
+      {reviews.length === 0 ? (
+        <p>No reviews yet.</p>
+      ) : (
+        reviews.map((rev) => (
+          <div key={rev.reviewId} className="mb-3 border rounded p-2">
+            <strong>{rev.username || "Anonymous"}</strong>{" "}
+            {"★".repeat(rev.rating) + "☆".repeat(5 - rev.rating)}
+            <p>{rev.comment}</p>
+          </div>
+        ))
+      )}
+
+      <hr />
+      <h5>Write a Review</h5>
       <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Tool Name</Form.Label>
-          <Form.Control type="text" name="name" value={toolData.name || ""} onChange={handleChange} required />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Description</Form.Label>
-          <Form.Control as="textarea" name="description" value={toolData.description || ""} onChange={handleChange} required />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Categories</Form.Label>
-          <div>
-            {defaultCategories.map((category) => (
-              <Form.Check
-                key={category}
-                type="checkbox"
-                label={category}
-                checked={Array.isArray(toolData.categories) && toolData.categories.includes(category)}
-                onChange={() => handleCategoryChange(category)}
-              />
+        <Form.Group className="mb-2">
+          <Form.Label>Rating</Form.Label>
+          <Form.Select
+            value={rating}
+            onChange={(e) => setRating(parseInt(e.target.value))}
+            required
+          >
+            <option value={0}>Select Rating</option>
+            {[1, 2, 3, 4, 5].map((r) => (
+              <option key={r} value={r}>
+                {r} Star{r > 1 ? "s" : ""}
+              </option>
             ))}
-          </div>
-          <div className="d-flex mt-2">
-            <Form.Control
-              type="text"
-              placeholder="Add a new category..."
-              value={customCategory}
-              onChange={handleNewCategoryChange}
-            />
-            <Button variant="success" className="ms-2" onClick={handleAddNewCategory}>
-              ➕ Add
-            </Button>
-          </div>
+          </Form.Select>
         </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Website URL</Form.Label>
-          <Form.Control type="url" name="website" value={toolData.website || ""} onChange={handleChange} required />
+        <Form.Group className="mb-2">
+          <Form.Label>Comment</Form.Label>
+          <Form.Control
+            as="textarea"
+            rows={3}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            required
+          />
         </Form.Group>
 
-        <div className="d-flex justify-content-between">
-          <Button variant="secondary" onClick={() => router.push("/tools")}>
-            Cancel
-          </Button>
-          <Button variant="primary" type="submit">
-            Save Changes
-          </Button>
-        </div>
+        <Button type="submit" variant="success">
+          Submit Review
+        </Button>
       </Form>
     </div>
   );

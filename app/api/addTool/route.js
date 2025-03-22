@@ -1,50 +1,74 @@
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import dynamoDb from "../../../lib/dynamoClient";
+// ✅ File: app/api/addTool/route.js
+
+import { NextResponse } from "next/server";
+import AWS from "aws-sdk";
 import { v4 as uuidv4 } from "uuid";
 
+AWS.config.update({ region: "ap-southeast-2" });
+const dynamoDB = new AWS.DynamoDB.DocumentClient();
+const TOOLS_TABLE = "MyWikiTools";
+const REVIEWS_TABLE = "Reviews";
+
 export async function POST(req) {
-  console.log("✅ API `/api/addTool` reached");
-
   try {
-    // ✅ Ensure AWS_TABLE_NAME is defined or default to "MyWikiTools"
-    const tableName = process.env.AWS_TABLE_NAME || "MyWikiTools"; 
-    console.log("🛠️ Using DynamoDB Table:", tableName);
-
-    // ✅ Ensure request body is correctly parsed
     const body = await req.json();
-    console.log("📥 Received data:", body);
+    const {
+      name,
+      description,
+      categories,
+      pricing,
+      website,
+      rating,
+      review,
+    } = body;
 
-    // ✅ Extract all form fields, ensuring defaults for missing values
-    const { name, description, categories, website, pricing, rating, review } = body;
-    if (!name) {
-      console.log("❌ Missing required field: name");
-      return Response.json({ error: "Tool name is required" }, { status: 400 });
+    if (!name || !description || !categories || !website || !rating) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     const toolId = uuidv4();
-    const params = {
-      TableName: tableName, // ✅ Ensures correct table name is used
-      Item: {
-        toolId,
-        name,
-        description: description || "",
-        categories: Array.isArray(categories) ? categories : [],
-        website: website || "",
-        pricing: pricing || "",
-        rating: rating !== undefined ? Number(rating) : null,
-        review: review || "",
-        createdAt: new Date().toISOString(),
-      },
-    };
+    const timestamp = new Date().toISOString();
 
-    console.log("🟢 Saving to DynamoDB:", JSON.stringify(params, null, 2));
+    // ✅ Save tool
+    await dynamoDB
+      .put({
+        TableName: TOOLS_TABLE,
+        Item: {
+          toolId,
+          name,
+          description,
+          categories,
+          pricing,
+          website,
+          submittedBy: "Unknown",
+          createdAt: timestamp,
+        },
+      })
+      .promise();
 
-    const result = await dynamoDb.send(new PutCommand(params));
-    console.log("✅ DynamoDB Save Success:", result);
+    // ✅ Save initial review
+    if (review) {
+      await dynamoDB
+        .put({
+          TableName: REVIEWS_TABLE,
+          Item: {
+            reviewId: `review-${Date.now()}`,
+            toolId,
+            username: "Anonymous",
+            rating,
+            comment: review,
+            timestamp,
+          },
+        })
+        .promise();
+    }
 
-    return Response.json({ message: "Tool added successfully", toolId });
+    return NextResponse.json({ message: "Tool added successfully!", toolId }, { status: 201 });
   } catch (error) {
-    console.error("❌ Error saving to DynamoDB:", error);
-    return Response.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
+    console.error("❌ Error adding tool:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

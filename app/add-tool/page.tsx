@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 export default function AddToolPage() {
   const router = useRouter();
 
-  const handleToolAdded = () => {
-    router.push("/"); // Redirect to the homepage after adding a tool
+  const handleToolAdded = (toolId: string) => {
+    router.push(`/tool/${toolId}`); // ✅ Redirect to the tool detail page
   };
 
   return (

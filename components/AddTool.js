@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 export default function AddTool({ onToolAdded }) {
-  const API_URL = typeof window !== "undefined" ? window.location.origin : ""; // ✅ Dynamic API URL
+  const API_URL = typeof window !== "undefined" ? window.location.origin : "";
 
   const [form, setForm] = useState({
     name: "",
@@ -18,18 +18,13 @@ export default function AddTool({ onToolAdded }) {
   const [newCategory, setNewCategory] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch categories from DynamoDB when component loads
   useEffect(() => {
     async function fetchCategories() {
       try {
-        console.log("📡 Fetching categories from:", `${API_URL}/api/getCategories`);
         const response = await fetch(`${API_URL}/api/getCategories`);
-
         if (!response.ok) throw new Error("Failed to fetch categories");
-
         const data = await response.json();
-        console.log("✅ Categories retrieved:", data);
-        setCategories(data); // ✅ Update state with fetched categories
+        setCategories(data);
         setLoading(false);
       } catch (error) {
         console.error("❌ Error fetching categories:", error);
@@ -40,12 +35,10 @@ export default function AddTool({ onToolAdded }) {
     fetchCategories();
   }, []);
 
-  // ✅ Handle text input changes
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ Handle category selection (checkboxes)
   const handleCategoryChange = (e) => {
     const selectedCategory = e.target.value;
     setForm((prevForm) => ({
@@ -56,7 +49,6 @@ export default function AddTool({ onToolAdded }) {
     }));
   };
 
-  // ✅ Handle star rating selection
   const handleRatingChange = (selectedRating) => {
     setForm((prevForm) => ({
       ...prevForm,
@@ -64,11 +56,9 @@ export default function AddTool({ onToolAdded }) {
     }));
   };
 
-  // ✅ Handle adding a new category
   const handleAddNewCategory = async () => {
     if (newCategory.trim() && !categories.includes(newCategory.trim())) {
       try {
-        console.log("➕ Adding new category:", newCategory);
         const response = await fetch(`${API_URL}/api/addCategory`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -77,7 +67,6 @@ export default function AddTool({ onToolAdded }) {
 
         if (!response.ok) throw new Error("Failed to add category");
 
-        // ✅ Update category list immediately after adding
         const updatedCategories = [...categories, newCategory.trim()];
         setCategories(updatedCategories);
         setForm((prevForm) => ({
@@ -93,19 +82,16 @@ export default function AddTool({ onToolAdded }) {
     }
   };
 
-  // ✅ Handle form submission (Add Tool)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
 
-    // ✅ Enforce required fields for submitting a tool (not categories)
     if (!form.name || !form.description || form.categories.length === 0 || !form.website || !form.rating) {
       setMessage("❌ Please fill out all fields and select at least one category.");
       return;
     }
 
     try {
-      console.log("📡 Submitting tool:", form);
       const response = await fetch(`${API_URL}/api/addTool`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,11 +103,14 @@ export default function AddTool({ onToolAdded }) {
       if (response.ok) {
         setMessage("✅ Tool added successfully!");
         setForm({ name: "", description: "", categories: [], website: "", pricing: "", rating: 0, review: "" });
-        if (onToolAdded) onToolAdded(); // ✅ Call the callback function
+        if (onToolAdded && data.toolId) {
+          onToolAdded(data.toolId); // ✅ Redirect to new tool page
+        }
       } else {
         setMessage(data.error || "Error adding tool");
       }
     } catch (error) {
+      console.error("❌ Error submitting tool:", error);
       setMessage("❌ Error submitting tool");
     }
   };
@@ -129,15 +118,12 @@ export default function AddTool({ onToolAdded }) {
   return (
     <div className="container mt-4">
       <form onSubmit={handleSubmit} className="p-4">
-        {/* ✅ Name */}
         <label className="form-label">Name:</label>
         <input type="text" name="name" className="form-control" value={form.name} onChange={handleChange} required />
 
-        {/* ✅ Description */}
         <label className="form-label">Description:</label>
         <textarea name="description" className="form-control" value={form.description} onChange={handleChange} required />
 
-        {/* ✅ Select Categories */}
         <label className="form-label">Select Categories:</label>
         <div className="d-flex flex-wrap">
           {loading ? (
@@ -160,7 +146,6 @@ export default function AddTool({ onToolAdded }) {
           )}
         </div>
 
-        {/* ✅ Add New Category */}
         <div className="input-group mt-2">
           <input
             type="text"
@@ -174,15 +159,12 @@ export default function AddTool({ onToolAdded }) {
           </button>
         </div>
 
-        {/* ✅ Pricing */}
         <label className="form-label mt-3">Pricing:</label>
         <input type="text" name="pricing" className="form-control" value={form.pricing} onChange={handleChange} placeholder="Free, Paid, Subscription, etc." />
 
-        {/* ✅ Website */}
         <label className="form-label mt-3">Website:</label>
         <input type="url" name="website" className="form-control" value={form.website} onChange={handleChange} required />
 
-        {/* ✅ Rating (Stars) */}
         <label className="form-label mt-3">Rating:</label>
         <div className="mb-3">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -192,11 +174,9 @@ export default function AddTool({ onToolAdded }) {
           ))}
         </div>
 
-        {/* ✅ Review */}
         <label className="form-label">Review:</label>
         <textarea name="review" className="form-control" value={form.review} onChange={handleChange} />
 
-        {/* ✅ Submit Button */}
         <button type="submit" className="btn btn-primary mt-3">Submit Tool</button>
       </form>
 
