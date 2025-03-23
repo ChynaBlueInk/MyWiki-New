@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import ToolCard from "../components/ToolCard";
 import CategoryButtons from "../components/CategoryButtons";
-import { Button, Form } from "react-bootstrap";
+import { Button, Form, Alert } from "react-bootstrap";
 
 type Review = {
   id: string;
@@ -22,9 +22,9 @@ type Tool = {
   website?: string;
   submittedBy?: string;
   dateSubmitted?: string;
+  createdAt?: string;
   thumbnail?: string;
   averageRating?: number;
-  createdAt?: string;
   reviews?: Review[];
 };
 
@@ -37,15 +37,13 @@ export default function HomePage() {
   useEffect(() => {
     const fetchTools = async () => {
       try {
-        const response = await fetch("/api/getTools"); // ✅ Use relative path for local dev
+        const response = await fetch("/api/getTools");
 
         if (!response.ok) {
           throw new Error(`Failed to fetch tools. Status: ${response.status}`);
         }
 
         let data: Tool[] = await response.json();
-        console.log("✅ Tools retrieved:", data);
-
         const normalizedTools = data.map((tool) => ({
           ...tool,
           categories: tool.categories ?? (tool.category ? [tool.category] : []),
@@ -80,7 +78,6 @@ export default function HomePage() {
       }
 
       console.log("✅ Tool deleted successfully");
-
       setTools((prev) => prev.filter((tool) => tool.toolId !== toolId));
       setFilteredTools((prev) => prev.filter((tool) => tool.toolId !== toolId));
     } catch (error) {
@@ -91,7 +88,12 @@ export default function HomePage() {
   return (
     <div className="container mt-4">
       <h1>Welcome to AI Tools Wiki</h1>
-      <p>This is a community-driven repository of AI tools. Browse by category or add new ones.</p>
+      <p className="mb-3">
+        Explore our community-driven collection of AI tools. You can search by name or category,
+        sort the tools using the dropdown, or switch between list and card views. Review tools that you
+        have used to help others decide which to explore. Click the <strong>Add Tool</strong> button below
+        or use the navigation link to share your own discoveries.
+      </p>
 
       <Form.Group className="mb-3">
         <Form.Control

@@ -116,7 +116,6 @@ export default function ToolsPage() {
     setFilteredTools(updatedTools);
   }, [searchTerm, selectedCategory, sortBy, tools]);
 
-  // ✅ Delete handler
   const handleDelete = async (toolId: string) => {
     if (!window.confirm("Are you sure you want to delete this tool?")) return;
 
@@ -139,14 +138,19 @@ export default function ToolsPage() {
   return (
     <div className="container mt-4">
       <h1>AI Tools</h1>
-      <p>Explore the latest AI tools.</p>
+      <p>
+        Welcome to the AI Tools Wiki — a growing, community-curated collection of helpful AI tools.
+        Use the search bar to find tools by name or keyword. You can filter tools by category,
+        sort them by name, rating, or newest added, and toggle between card and list views to suit your preference.
+        If you've used a tool, consider leaving a review to help others. To contribute a new tool, click
+        "Add Tool" on the homepage or in the navigation menu.
+      </p>
 
       {error && <p className="alert alert-danger">{error}</p>}
 
       <SearchBar onSearch={(query) => setSearchTerm(query)} />
       <CategoryButtons onCategorySelect={(category) => setSelectedCategory(category)} />
 
-      {/* Sort & View Controls */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div style={{ flex: 1 }}>
           <label className="form-label">Sort by:</label>
@@ -180,7 +184,6 @@ export default function ToolsPage() {
         </div>
       </div>
 
-      {/* Tool Listing */}
       {loading ? (
         <p>Loading tools...</p>
       ) : filteredTools.length === 0 ? (

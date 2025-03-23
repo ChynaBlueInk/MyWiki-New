@@ -48,8 +48,11 @@ export default function ToolCard({
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [favicon, setFavicon] = useState<string | null>(null);
+  const [metaDescription, setMetaDescription] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchReviews() {
@@ -64,6 +67,19 @@ export default function ToolCard({
     }
     fetchReviews();
   }, [toolId]);
+
+  useEffect(() => {
+    if (!website) return;
+    const domain = new URL(website).hostname;
+    setFavicon(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`);
+
+    fetch(`https://jsonlink.io/api/extract?url=${website}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.description) setMetaDescription(data.description);
+      })
+      .catch((err) => console.warn("Meta fetch failed:", err));
+  }, [website]);
 
   const overallAverageRating = averageRating ?? 0;
 
@@ -108,7 +124,7 @@ export default function ToolCard({
       <Card.Body>
         <div className="d-flex align-items-center">
           <Image
-            src={thumbnail || "/placeholder.svg"}
+            src={favicon || thumbnail || "/placeholder.svg"}
             alt={name}
             width={64}
             height={64}
@@ -123,6 +139,9 @@ export default function ToolCard({
         </div>
 
         <Card.Text className="mt-3">{description}</Card.Text>
+        {metaDescription && (
+          <p className="text-muted small mb-2">🌐 {metaDescription}</p>
+        )}
         <p className="text-muted small">
           Submitted by {submittedBy || "Unknown"} on {dateSubmitted || "Unknown"}
         </p>
@@ -147,7 +166,7 @@ export default function ToolCard({
           </div>
         </div>
 
-        <div className="d-flex justify-content-between">
+        <div className="d-flex justify-content-between mb-3">
           <Button variant="primary" href={website} target="_blank">
             Visit Website
           </Button>
@@ -159,27 +178,38 @@ export default function ToolCard({
           </Button>
         </div>
 
-        <hr />
-        <h5>Reviews</h5>
-        {reviews.length === 0 ? (
-          <p>No reviews yet. Be the first to review!</p>
-        ) : (
-          reviews.map((review) => (
-            <div key={review.id} className="border p-2 my-2 rounded">
-              <strong>{review.username}</strong>
-              <span className="text-warning ms-2">{'★'.repeat(review.rating)}</span>
-              <p>{review.comment}</p>
-            </div>
-          ))
-        )}
+        <div className="d-flex gap-3 mb-3">
+          <Button
+            variant="outline-secondary"
+            onClick={() => setShowReviews(!showReviews)}
+          >
+            {showReviews ? "🔽 Hide Reviews" : "🗨️ Show Reviews"}
+          </Button>
 
-        <Button
-          variant="success"
-          className="mt-3"
-          onClick={() => setShowReviewForm(!showReviewForm)}
-        >
-          {showReviewForm ? "Cancel" : "Write a Review"}
-        </Button>
+          <Button
+            variant="success"
+            onClick={() => setShowReviewForm(!showReviewForm)}
+          >
+            {showReviewForm ? "Cancel" : "Write a Review"}
+          </Button>
+        </div>
+
+        {showReviews && (
+          <>
+            <h5>Reviews</h5>
+            {reviews.length === 0 ? (
+              <p>No reviews yet. Be the first to review!</p>
+            ) : (
+              reviews.map((review) => (
+                <div key={review.id} className="border p-2 my-2 rounded">
+                  <strong>{review.username}</strong>
+                  <span className="text-warning ms-2">{'★'.repeat(review.rating)}</span>
+                  <p>{review.comment}</p>
+                </div>
+              ))
+            )}
+          </>
+        )}
 
         {showReviewForm && (
           <Form onSubmit={handleSubmitReview} className="mt-3 p-3 border rounded">
