@@ -6,7 +6,6 @@ import CategoryButtons from "../../components/CategoryButtons";
 import SearchBar from "../../components/SearchBar";
 import { Button } from "react-bootstrap";
 
-// Define types
 type Review = {
   id: string;
   user: string;
@@ -43,10 +42,7 @@ export default function ToolsPage() {
   useEffect(() => {
     const fetchTools = async () => {
       try {
-        const response = await fetch("/api/getTools", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
+        const response = await fetch("/api/getTools");
 
         if (!response.ok) {
           throw new Error(`Failed to fetch tools. Status: ${response.status}`);
@@ -120,6 +116,26 @@ export default function ToolsPage() {
     setFilteredTools(updatedTools);
   }, [searchTerm, selectedCategory, sortBy, tools]);
 
+  // ✅ Delete handler
+  const handleDelete = async (toolId: string) => {
+    if (!window.confirm("Are you sure you want to delete this tool?")) return;
+
+    try {
+      const response = await fetch(`/api/deleteTool?toolId=${toolId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete tool");
+      }
+
+      setTools((prev) => prev.filter((tool) => tool.toolId !== toolId));
+      setFilteredTools((prev) => prev.filter((tool) => tool.toolId !== toolId));
+    } catch (error) {
+      console.error("❌ Error deleting tool:", error);
+    }
+  };
+
   return (
     <div className="container mt-4">
       <h1>AI Tools</h1>
@@ -175,7 +191,7 @@ export default function ToolsPage() {
         <div className="row">
           {filteredTools.map((tool) => (
             <div key={tool.toolId} className="col-md-6">
-              <ToolCard {...tool} onDelete={() => {}} />
+              <ToolCard {...tool} onDelete={() => handleDelete(tool.toolId)} />
             </div>
           ))}
         </div>
