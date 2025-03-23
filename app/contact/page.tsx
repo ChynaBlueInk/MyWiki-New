@@ -35,7 +35,7 @@ export default function ContactPage() {
   return (
     <div className="container mt-5">
       <h1 className="mb-4">Contact Us</h1>
-      <p>Have a question or want to suggest a tool? Get in touch below.  If the form is not working, email chynablueink@gmail.com with your ideas.</p>
+      <p>Have a question or want to suggest a tool? Get in touch below.  If the form is not working, email <b>chynablueink@gmail.com</b> with your ideas.</p>
 
       {submitted ? (
         <Alert variant="success" className="mt-4">

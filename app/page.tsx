@@ -90,7 +90,7 @@ export default function HomePage() {
       <h1>Welcome to AI Tools Wiki</h1>
       <p className="mb-3">
         Explore our community-driven collection of AI tools. You can search by name or category,
-        sort the tools using the dropdown, or switch between list and card views. Review tools that you
+        and on the Tools page you can sort the tools using the dropdown, or switch between list and card views. Review tools that you
         have used to help others decide which to explore. Click the <strong>Add Tool</strong> button below
         or use the navigation link to share your own discoveries.
       </p>

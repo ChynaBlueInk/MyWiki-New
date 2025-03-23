@@ -1,38 +1,48 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Navbar, Nav, Container } from "react-bootstrap";
 import "../styles/global.css";
 
 const NavBar = () => {
+  const [expanded, setExpanded] = useState(false);
+
+  const handleToggle = () => setExpanded(!expanded);
+  const handleClose = () => setExpanded(false);
+
   return (
     <Navbar
       expand="lg"
-      bg="light"
-      variant="light"
+      style={{
+        backgroundColor: "#002244", // Dark blue
+        zIndex: 999,
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      }}
+      variant="dark"
       sticky="top"
-      style={{ zIndex: 999, boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}
+      expanded={expanded}
+      onToggle={handleToggle}
     >
       <Container>
-        {/* ✅ Logo on the left */}
-        <Navbar.Brand as={Link} href="/">
+        {/* ✅ Logo + Text */}
+        <Navbar.Brand as={Link} href="/" className="d-flex align-items-center">
           <img
             src="/logo.png"
-            alt="AI Tools Wiki Logo"
+            alt="Logo"
             style={{ height: "40px", marginRight: "10px" }}
           />
+          <span style={{ fontWeight: "bold", color: "white", fontSize: "1.2rem" }}>
+            AI Tools Wiki
+          </span>
         </Navbar.Brand>
 
         {/* ✅ Hamburger toggle */}
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
         {/* ✅ Collapsible Nav Items */}
-        <Navbar.Collapse
-          id="basic-navbar-nav"
-          className="bg-white p-3 rounded shadow-sm"
-        >
-          <Nav className="ms-auto">
+        <Navbar.Collapse id="basic-navbar-nav" className="p-3">
+          <Nav className="ms-auto" onClick={handleClose}>
             <Nav.Link as={Link} href="/" className="mx-2">
               Home
             </Nav.Link>
