@@ -12,7 +12,9 @@ export default function ContactPage() {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    // ✅ Use FormSubmit securely with POST, no redirect
+    // ✅ Add subject to emails for easy filtering
+    formData.append("_subject", "My AI Wiki Contact Request");
+
     try {
       await fetch("https://formsubmit.co/chynablueink@gmail.com", {
         method: "POST",
@@ -24,7 +26,8 @@ export default function ContactPage() {
 
       setSubmitted(true);
       form.reset();
-    } catch (error) {
+    } catch (error: any) {
+      console.error("❌ Error submitting contact form:", error);
       alert("❌ There was an error sending your message. Please try again.");
     }
   };
@@ -32,7 +35,7 @@ export default function ContactPage() {
   return (
     <div className="container mt-5">
       <h1 className="mb-4">Contact Us</h1>
-      <p>Have a question or want to suggest a tool? Get in touch below.</p>
+      <p>Have a question or want to suggest a tool? Get in touch below.  If the form is not working, email chynablueink@gmail.com with your ideas.</p>
 
       {submitted ? (
         <Alert variant="success" className="mt-4">
