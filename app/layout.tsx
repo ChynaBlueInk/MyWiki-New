@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-// import "@/lib/awsConfig"; // Temporary removal
-import "../styles/global.css";  
-import "bootstrap/dist/css/bootstrap.min.css";  
+import "bootstrap/dist/css/bootstrap.min.css";  // ✅ Import Bootstrap first
+import "../styles/global.css";                    // ✅ Import custom styles second
 import NavBar from "../components/NavBar";
-import MyAuthProvider from "../components/AuthProvider"; // Ensure this is correctly imported
-import "@aws-amplify/ui-react/styles.css"; // Import Amplify UI styles
+import MyAuthProvider from "../components/AuthProvider";
+import "@aws-amplify/ui-react/styles.css"; // Amplify UI styles
 
 export const metadata: Metadata = {
   title: "AI Tools Wiki",
@@ -24,9 +23,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/favicon.ico" />
       </head>
       <body>
-        <MyAuthProvider>  {/* Wrap the app in the correct Client Component */}
-          <NavBar />  
-          <main>{children}</main> {/* ✅ Wrap content inside <main> */}
+        <MyAuthProvider>
+          <NavBar />
+          <main>{children}</main>
         </MyAuthProvider>
       </body>
     </html>

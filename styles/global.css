@@ -15,9 +15,9 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 70px; /* Ensure navbar has a defined height */
-  background-color: white; /* White background for contrast */
-  color: #182a44; /* Dark blue text */
+  height: 70px;
+  background-color: white;
+  color: #182a44;
   padding: 15px 20px;
   z-index: 1000;
   display: flex;
@@ -28,21 +28,21 @@ body {
 
 /* ✅ Ensure Main Content Doesn't Overlap Navbar */
 main {
-  margin-top: 80px; /* Pushes content below navbar */
-  padding: 20px; /* Adds breathing space */
+  margin-top: 80px;
+  padding: 20px;
 }
 
 /* ✅ Logo Styling */
 .nav-logo img {
-  height: 50px; /* Adjust based on your logo size */
+  height: 50px;
   margin-right: 15px;
 }
 
 /* ✅ Navbar Links */
 .nav-links {
-  list-style: none; /* Remove bullets */
+  list-style: none;
   display: flex;
-  gap: 20px; /* Space between links */
+  gap: 20px;
   margin: 0;
   padding: 0;
 }
@@ -52,7 +52,7 @@ main {
 }
 
 .nav-links a {
-  color: #182a44; /* Dark blue text */
+  color: #182a44;
   text-decoration: none;
   font-size: 18px;
   padding: 10px;
@@ -60,7 +60,7 @@ main {
 }
 
 .nav-links a:hover {
-  color: #445c6b; /* Softer blue hover effect */
+  color: #445c6b;
 }
 
 /* ✅ Responsive Navbar for Mobile */
@@ -72,8 +72,8 @@ main {
   }
 }
 
-/* ✅ Buttons (Dark Blue) */
-button, .btn-primary {
+/* ✅ Custom Primary Button */
+.btn-primary {
   background-color: #182a44 !important;
   color: white !important;
   border: none;
@@ -82,41 +82,50 @@ button, .btn-primary {
   cursor: pointer;
 }
 
-button:hover, .btn-primary:hover {
-  background-color: #445c6b !important; /* Lighter blue hover */
+.btn-primary:hover {
+  background-color: #445c6b !important;
 }
 
-/* ✅ Buttons: Delete (Pink Theme) */
+/* ✅ Restore Bootstrap Danger & Warning Styles */
 .btn-danger {
-  background-color: #d679b0 !important; /* Pink */
+  background-color: #dc3545 !important;
   color: white !important;
 }
 
 .btn-danger:hover {
-  background-color: #a64e80 !important; /* Darker pink */
+  background-color: #bb2d3b !important;
+}
+
+.btn-warning {
+  background-color: #f0ad4e !important;
+  color: #212529 !important;
+}
+
+.btn-warning:hover {
+  background-color: #ec971f !important;
 }
 
 /* ✅ Improve Link Styles */
 a {
-  color: #182a44; /* Dark blue */
+  color: #182a44;
   text-decoration: none;
 }
 
 a:hover {
   text-decoration: underline;
-  color: #445c6b; /* Soft blue hover */
+  color: #445c6b;
 }
 
 /* ✅ Forms & Input Fields */
 input, textarea, select {
-  border: 2px solid #889ba0 !important; /* Soft blue-gray */
+  border: 2px solid #889ba0 !important;
   border-radius: 5px;
   padding: 8px;
   font-size: 16px;
 }
 
 input:focus, textarea:focus, select:focus {
-  border-color: #445c6b !important; /* Medium blue */
+  border-color: #445c6b !important;
   outline: none;
   box-shadow: 0 0 5px rgba(68, 92, 107, 0.5);
 }
