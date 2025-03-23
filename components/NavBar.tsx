@@ -41,7 +41,11 @@ const NavBar = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
         {/* ✅ Collapsible Nav Items */}
-        <Navbar.Collapse id="basic-navbar-nav" className="p-3">
+        <Navbar.Collapse
+  id="basic-navbar-nav"
+  className="p-3"
+  style={{ backgroundColor: "#002244" }}
+>
           <Nav className="ms-auto" onClick={handleClose}>
             <Nav.Link as={Link} href="/" className="mx-2">
               Home
