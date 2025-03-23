@@ -1,48 +1,64 @@
 "use client";
 
 import { useState } from "react";
+import { Form, Button, Alert } from "react-bootstrap";
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    // ✅ Use FormSubmit securely with POST, no redirect
+    try {
+      await fetch("https://formsubmit.co/chynablueink@gmail.com", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+        },
+        body: formData,
+      });
+
+      setSubmitted(true);
+      form.reset();
+    } catch (error) {
+      alert("❌ There was an error sending your message. Please try again.");
+    }
+  };
+
   return (
-    <div className="container mt-4">
-      <h1 className="mb-3">Contact Us</h1>
-      <p>Have questions or want us to add a tool for you? Fill out the form below.</p>
+    <div className="container mt-5">
+      <h1 className="mb-4">Contact Us</h1>
+      <p>Have a question or want to suggest a tool? Get in touch below.</p>
 
       {submitted ? (
-        <div className="alert alert-success mt-4">
-          ✅ Thanks for your message! If you left an email address, someone will be in touch as soon as possible.
-        </div>
+        <Alert variant="success" className="mt-4">
+          ✅ Thank you for your message! If you left an email address, someone will be in touch as soon as possible.
+        </Alert>
       ) : (
-        <form
-          action="https://formsubmit.co/chynablueink@gmail.com"
-          method="POST"
-          className="mt-4"
-          onSubmit={() => setSubmitted(true)}
-        >
-          {/* ✅ Hidden config fields */}
-          <input type="hidden" name="_subject" value="My AI Wiki Message" />
-          <input type="hidden" name="_captcha" value="false" />
-          <input type="hidden" name="_template" value="table" />
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3" controlId="name">
+            <Form.Label>Your Name</Form.Label>
+            <Form.Control type="text" name="name" required />
+          </Form.Group>
 
-          <div className="mb-3">
-            <label className="form-label">Your Name</label>
-            <input type="text" name="name" required className="form-control" />
-          </div>
+          <Form.Group className="mb-3" controlId="email">
+            <Form.Label>Your Email (optional)</Form.Label>
+            <Form.Control type="email" name="email" />
+          </Form.Group>
 
-          <div className="mb-3">
-            <label className="form-label">Your Email (optional)</label>
-            <input type="email" name="email" className="form-control" />
-          </div>
+          <Form.Group className="mb-3" controlId="message">
+            <Form.Label>Message</Form.Label>
+            <Form.Control as="textarea" name="message" rows={4} required />
+          </Form.Group>
 
-          <div className="mb-3">
-            <label className="form-label">Message</label>
-            <textarea name="message" rows={5} required className="form-control" />
-          </div>
-
-          <button type="submit" className="btn btn-primary">Send Message</button>
-        </form>
+          <Button type="submit" variant="primary">
+            Send Message
+          </Button>
+        </Form>
       )}
     </div>
   );
