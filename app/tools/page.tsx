@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ToolCard from "../../components/ToolCard";
 import CategoryButtons from "../../components/CategoryButtons";
@@ -30,7 +30,7 @@ type Tool = {
   reviews?: Review[];
 };
 
-export default function ToolsPage() {
+function ToolsContent() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [filteredTools, setFilteredTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,12 +69,9 @@ export default function ToolsPage() {
         setTools(normalizedTools);
         setLoading(false);
 
-        // 🌐 Initial category filter from URL (but only if no button clicked yet)
         if (!selectedCategory && urlCategory) {
           setSelectedCategory(urlCategory);
         }
-
-        // Always apply filters after loading
       } catch (error) {
         console.error("❌ Error fetching tools:", error);
         setError("Failed to load tools. Please check console logs.");
@@ -86,7 +83,6 @@ export default function ToolsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Apply search, category, and sort
   useEffect(() => {
     let updatedTools = [...tools];
 
@@ -227,5 +223,14 @@ export default function ToolsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// ✅ Export wrapped in Suspense
+export default function ToolsPage() {
+  return (
+    <Suspense fallback={<div className="container mt-4">Loading tools...</div>}>
+      <ToolsContent />
+    </Suspense>
   );
 }
