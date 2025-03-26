@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import ToolCard from "../../components/ToolCard";
 import CategoryButtons from "../../components/CategoryButtons";
 import SearchBar from "../../components/SearchBar";
@@ -39,6 +40,9 @@ export default function ToolsPage() {
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
   const [error, setError] = useState("");
 
+  const searchParams = useSearchParams();
+  const urlCategory = searchParams.get("category");
+
   useEffect(() => {
     const fetchTools = async () => {
       try {
@@ -63,8 +67,14 @@ export default function ToolsPage() {
         }));
 
         setTools(normalizedTools);
-        setFilteredTools(normalizedTools);
         setLoading(false);
+
+        // 🌐 Initial category filter from URL (but only if no button clicked yet)
+        if (!selectedCategory && urlCategory) {
+          setSelectedCategory(urlCategory);
+        }
+
+        // Always apply filters after loading
       } catch (error) {
         console.error("❌ Error fetching tools:", error);
         setError("Failed to load tools. Please check console logs.");
@@ -73,8 +83,10 @@ export default function ToolsPage() {
     };
 
     fetchTools();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Apply search, category, and sort
   useEffect(() => {
     let updatedTools = [...tools];
 
@@ -84,9 +96,11 @@ export default function ToolsPage() {
       );
     }
 
-    if (selectedCategory) {
+    const categoryToFilter = selectedCategory || urlCategory;
+
+    if (categoryToFilter) {
       updatedTools = updatedTools.filter((tool) =>
-        tool.categories?.includes(selectedCategory)
+        tool.categories?.includes(categoryToFilter)
       );
     }
 
@@ -114,7 +128,7 @@ export default function ToolsPage() {
     }
 
     setFilteredTools(updatedTools);
-  }, [searchTerm, selectedCategory, sortBy, tools]);
+  }, [searchTerm, selectedCategory, sortBy, tools, urlCategory]);
 
   const handleDelete = async (toolId: string) => {
     if (!window.confirm("Are you sure you want to delete this tool?")) return;
