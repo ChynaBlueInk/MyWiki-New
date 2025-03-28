@@ -108,7 +108,8 @@ export default function ToolDetailPage() {
         {averageRating > 0 ? (
           <>
             {"★".repeat(Math.round(averageRating)) +
-              "☆".repeat(5 - Math.round(averageRating))} ( {averageRating} )
+              "☆".repeat(5 - Math.round(averageRating))}{" "}
+            ( {averageRating} )
           </>
         ) : (
           "No ratings yet"
@@ -125,8 +126,13 @@ export default function ToolDetailPage() {
       {wasSubmitted && (
         <Alert variant="success" className="mt-4">
           ✅ Tool created successfully! Your initial review was saved.
-          <div className="mt-2">
-            <Button variant="outline-success" onClick={() => router.push("/tools")}>← Back to Tools</Button>
+          <div className="mt-3 d-flex gap-2">
+            <Button variant="outline-success" onClick={() => router.push("/tools")}>
+              ← Back to Tools
+            </Button>
+            <Button variant="outline-primary" onClick={() => router.push("/add-tool")}>
+              ➕ Add Another Tool
+            </Button>
           </div>
         </Alert>
       )}
