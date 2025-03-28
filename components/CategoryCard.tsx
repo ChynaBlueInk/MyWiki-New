@@ -7,6 +7,7 @@ interface CategoryCardProps {
 }
 
 const categoryIconMap: Record<string, string> = {
+  "3D Objects": "ai3d.png",
   "Art Generator": "aiart.png",
   "Animation Tools": "aianimation.png",
   "Audio Generation": "aiaudio.png",

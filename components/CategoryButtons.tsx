@@ -1,4 +1,7 @@
+"use client";
+
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "react-bootstrap";
 
 interface CategoryButtonsProps {
@@ -9,11 +12,21 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // ✅ Fetch categories and tools, then filter to only used categories
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentCategory = searchParams?.get("category");
+
+  useEffect(() => {
+    if (currentCategory) {
+      setSelectedCategory(currentCategory);
+    } else {
+      setSelectedCategory(null);
+    }
+  }, [currentCategory]);
+
   useEffect(() => {
     const fetchFilteredCategories = async () => {
       try {
-        console.log("📡 Fetching categories and tools...");
         const [catRes, toolsRes] = await Promise.all([
           fetch("/api/getCategories"),
           fetch("/api/getTools"),
@@ -31,8 +44,6 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
         );
 
         const filtered = catData.filter((cat) => usedCategories.has(cat));
-        console.log("✅ Filtered categories:", filtered);
-
         setCategories(filtered);
       } catch (error) {
         console.error("❌ Error fetching filtered categories:", error);
@@ -45,6 +56,14 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
   const handleCategoryClick = (category: string | null) => {
     setSelectedCategory(category);
     onCategorySelect(category);
+
+    if (category) {
+      // Update the URL to include selected category
+      router.push(`/tools?category=${encodeURIComponent(category)}`);
+    } else {
+      // Reset URL to base /tools (no filter)
+      router.push("/tools");
+    }
   };
 
   return (
@@ -62,7 +81,10 @@ export default function CategoryButtons({ onCategorySelect }: CategoryButtonsPro
       ) : (
         <p>No categories available</p>
       )}
-      <Button variant={!selectedCategory ? "dark" : "outline-dark"} onClick={() => handleCategoryClick(null)}>
+      <Button
+        variant={!selectedCategory ? "dark" : "outline-dark"}
+        onClick={() => handleCategoryClick(null)}
+      >
         Show All
       </Button>
     </div>
