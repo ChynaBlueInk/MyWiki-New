@@ -52,9 +52,6 @@ const NavBar = () => {
             <Nav.Link as={Link} href="/tools" className="mx-2">
               Tools
             </Nav.Link>
-            <Nav.Link as={Link} href="/categories/overview" className="mx-2">
-  Categories
-</Nav.Link>
             <Nav.Link as={Link} href="/add-tool" className="mx-2">
               Add Tool
             </Nav.Link>
