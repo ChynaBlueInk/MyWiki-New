@@ -1,41 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Form, Button, Alert } from "react-bootstrap";
-import { useRouter } from "next/navigation";
+import { Form, Button } from "react-bootstrap";
 
 export default function ContactPage() {
-  const [submitted, setSubmitted] = useState(false);
-  const router = useRouter();
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-
-    // ✅ Required by FormSubmit for custom email subject and redirect
-    formData.append("_subject", "My AI Wiki Contact Request");
-    formData.append("_next", `${window.location.origin}/contact/thank-you`);
-    formData.append("_template", "table");
-
-    try {
-      await fetch("https://formsubmit.co/471714d3be5121e0f51f4a09e5869221", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-        },
-        body: formData,
-      });
-
-      form.reset();
-      router.push("/contact/thank-you");
-    } catch (error: any) {
-      console.error("❌ Error submitting contact form:", error);
-      alert("❌ There was an error sending your message. Please try again.");
-    }
-  };
-
   return (
     <div className="container mt-5">
       <h1 className="mb-4">Contact Us</h1>
@@ -44,7 +11,10 @@ export default function ContactPage() {
         If the form isn't working, email <b>chynablueink@gmail.com</b> directly.
       </p>
 
-      <Form onSubmit={handleSubmit}>
+      <Form
+        action="https://formspree.io/f/mjkyepvz"
+        method="POST"
+      >
         <Form.Group className="mb-3" controlId="name">
           <Form.Label>Your Name</Form.Label>
           <Form.Control type="text" name="name" required />
@@ -59,6 +29,12 @@ export default function ContactPage() {
           <Form.Label>Message</Form.Label>
           <Form.Control as="textarea" name="message" rows={4} required />
         </Form.Group>
+
+        {/* Custom subject line for email */}
+        <input type="hidden" name="_subject" value="My AI Wiki Contact Request" />
+
+        {/* Redirect after submit */}
+        <input type="hidden" name="_next" value="/contact/thank-you" />
 
         <Button type="submit" variant="primary">Send Message</Button>
       </Form>
