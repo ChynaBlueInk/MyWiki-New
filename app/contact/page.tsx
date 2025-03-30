@@ -14,11 +14,13 @@ export default function ContactPage() {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
+    // ✅ Required by FormSubmit for custom email subject and redirect
     formData.append("_subject", "My AI Wiki Contact Request");
     formData.append("_next", `${window.location.origin}/contact/thank-you`);
+    formData.append("_template", "table");
 
     try {
-      await fetch("https://formsubmit.co/chynablueink@gmail.com", {
+      await fetch("https://formsubmit.co/471714d3be5121e0f51f4a09e5869221", {
         method: "POST",
         headers: {
           Accept: "application/json",
