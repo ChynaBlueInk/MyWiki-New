@@ -1,14 +1,30 @@
-import React from "react";
-import { Container } from "react-bootstrap";
+"use client";
 
-const Footer = () => {
+import { useEffect, useState } from "react";
+
+export default function Footer() {
+  const [visitorCount, setVisitorCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const trackVisitor = async () => {
+      try {
+        const res = await fetch("/api/trackVisitor");
+        const data = await res.json();
+        setVisitorCount(data.count);
+      } catch (error) {
+        console.error("❌ Error fetching visitor count:", error);
+      }
+    };
+
+    trackVisitor();
+  }, []);
+
   return (
-    <footer className="bg-light text-center text-muted py-3 mt-auto border-top">
-      <Container>
-        <small>&copy; {new Date().getFullYear()} AI Tools Wiki | Made with 💡</small>
-      </Container>
+    <footer className="text-center py-4 mt-5 border-top">
+      <p className="mb-1">© {new Date().getFullYear()} AI Tools Wiki</p>
+      {visitorCount !== null && (
+        <p className="text-muted small">👁️ Visitors: {visitorCount}</p>
+      )}
     </footer>
   );
-};
-
-export default Footer;
+}
